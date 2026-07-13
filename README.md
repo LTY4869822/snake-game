@@ -2,7 +2,7 @@
 
 全栈贪吃蛇游戏，支持 5 种游戏模式、道具系统、皮肤商店、成就系统、全球排行榜。
 
-> 🎮 **在线游玩：** [https://Litianyu.github.io/snake-game](https://Litianyu.github.io/snake-game)（GitHub Pages 纯静态版，本地数据存储）
+> 🎮 **在线游玩：** [https://LTY4869822.github.io/snake-game](https://LTY4869822.github.io/snake-game)（GitHub Pages 纯静态版，本地数据存储）
 
 ## ✨ 功能特性
 
