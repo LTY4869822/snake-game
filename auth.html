@@ -984,6 +984,7 @@
   }
 
   function loginAsGuest() {
+    localStorage.setItem('snake_guest_visited', '1');
     window.location.href = 'index.html';
   }
 

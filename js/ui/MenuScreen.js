@@ -44,11 +44,11 @@ class MenuScreen {
       themeBtn.addEventListener('click', () => this._toggleTheme());
     }
 
-    // Auth button
+    // Auth button -> redirect to auth page
     const loginBtn = document.getElementById('sidebar-login-btn');
     if (loginBtn) {
       loginBtn.addEventListener('click', () => {
-        this.screenManager.openModal('auth');
+        window.location.href = 'auth.html';
       });
     }
 

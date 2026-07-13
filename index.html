@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- Redirect to auth page if not logged in and not guest -->
+  <script>
+    (function(){
+      try {
+        var token = JSON.parse(localStorage.getItem('snake_token'));
+        var guest = localStorage.getItem('snake_guest_visited');
+        if (!token && !guest) {
+          window.location.replace('auth.html');
+        }
+      } catch(e) {
+        window.location.replace('auth.html');
+      }
+    })();
+  </script>
   <title>Snake Pro - 贪吃蛇</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/themes.css">
