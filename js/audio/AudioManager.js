@@ -42,8 +42,17 @@ class AudioManager {
       this.sfxEnabled = settings.soundEnabled !== false;
       this.bgmEnabled = settings.musicEnabled !== false;
 
+      // CRITICAL: Resume AudioContext from user gesture (browser autoplay policy)
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().then(() => {
+          console.log('[Audio] Context resumed successfully');
+        }).catch(err => {
+          console.warn('[Audio] Failed to resume context:', err.message);
+        });
+      }
+
       this.initialized = true;
-      console.log('[Audio] Initialized');
+      console.log('[Audio] Initialized, state:', this.ctx.state);
     } catch (err) {
       console.warn('[Audio] Web Audio API not available:', err.message);
     }
@@ -54,7 +63,9 @@ class AudioManager {
    */
   resume() {
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(err => {
+        console.warn('[Audio] Resume failed:', err.message);
+      });
     }
   }
 
@@ -313,6 +324,19 @@ class AudioManager {
         this.bgmVolume * 0.08,
         this.ctx.currentTime
       );
+    }
+  }
+
+  /**
+   * Toggle all sound (SFX + BGM)
+   */
+  setSoundEnabled(enabled) {
+    this.sfxEnabled = enabled;
+    this.bgmEnabled = enabled;
+    if (!enabled) {
+      this.stopBgm();
+    } else if (!this.bgmNodes) {
+      this.startBgm();
     }
   }
 

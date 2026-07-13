@@ -74,6 +74,10 @@ class GameScreen {
         settings.soundEnabled = !settings.soundEnabled;
         StorageManager.saveSettings(settings);
         soundBtn.textContent = settings.soundEnabled ? '🔊' : '🔇';
+        // Sync to AudioManager
+        if (AppState.audioManager) {
+          AppState.audioManager.setSoundEnabled(settings.soundEnabled);
+        }
       });
     }
 

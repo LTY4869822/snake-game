@@ -125,9 +125,13 @@
     AppState.achievementScreen = new AchievementScreen(AppState.screenManager);
     AppState.settingsScreen = new SettingsScreen(AppState.screenManager);
 
-    // Audio init on first interaction
+    // Audio init on first interaction (browser autoplay policy)
     const initAudio = () => {
-      if (AppState.audioManager) { AppState.audioManager.init(); AppState.audioManager.startBgm(); }
+      if (AppState.audioManager) {
+        AppState.audioManager.init();
+        // Small delay ensures AudioContext is fully resumed before BGM starts
+        setTimeout(() => AppState.audioManager.startBgm(), 150);
+      }
       document.removeEventListener('click', initAudio);
       document.removeEventListener('touchstart', initAudio);
       document.removeEventListener('keydown', initAudio);
