@@ -106,6 +106,89 @@
   --logo-shadow: 0 0 40px rgba(124, 179, 66, 0.25);
 }
 
+/* ---------- Cyberpunk Neon Theme ---------- */
+[data-theme="cyberpunk"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111118;
+  --bg-tertiary: #1a1a28;
+  --panel-bg: rgba(10, 10, 22, 0.88);
+  --panel-bg-solid: #0a0a16;
+
+  --text-primary: #e0e0ff;
+  --text-secondary: #8888bb;
+  --text-muted: #555577;
+
+  --accent-primary: #ff00ff;
+  --accent-primary-light: #ff66ff;
+  --accent-primary-dark: #aa00aa;
+  --accent-secondary: #00ffff;
+  --accent-danger: #ff0044;
+  --accent-success: #00ff88;
+  --accent-warning: #ffcc00;
+  --accent-special: #ff4444;
+
+  --border-color: rgba(255, 0, 255, 0.12);
+  --border-color-strong: rgba(0, 255, 255, 0.2);
+
+  --btn-primary-bg: linear-gradient(135deg, #ff00ff, #aa00aa);
+  --btn-primary-hover: linear-gradient(135deg, #ff44ff, #cc00cc);
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: rgba(255, 0, 255, 0.08);
+  --btn-secondary-hover: rgba(0, 255, 255, 0.12);
+  --btn-secondary-text: #ccccff;
+
+  --game-bg: #05050f;
+  --grid-color: rgba(255, 0, 255, 0.06);
+  --grid-color-strong: rgba(0, 255, 255, 0.12);
+
+  --snake-head: #00ffff;
+  --snake-body-start: #ff00ff;
+  --snake-body-end: #660066;
+  --snake-glow: rgba(255, 0, 255, 0.6);
+
+  --food-color: #ffcc00;
+  --food-glow: rgba(255, 204, 0, 0.5);
+
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+
+  --card-bg: rgba(20, 0, 30, 0.7);
+  --card-hover-bg: rgba(40, 0, 50, 0.85);
+
+  --logo-gradient: linear-gradient(135deg, #ff00ff, #00ffff, #ff00ff);
+  --logo-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
+
+  /* Cyberpunk extras */
+  --scanline-color: rgba(0, 255, 255, 0.03);
+  --neon-text-shadow: 0 0 10px rgba(255, 0, 255, 0.5), 0 0 30px rgba(255, 0, 255, 0.2);
+}
+
+/* Cyberpunk scanline overlay */
+[data-theme="cyberpunk"] #main-area::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.015) 2px,
+    rgba(0, 255, 255, 0.015) 4px
+  );
+  pointer-events: none; z-index: 9999;
+}
+
+[data-theme="cyberpunk"] .page-title {
+  text-shadow: var(--neon-text-shadow);
+}
+
+[data-theme="cyberpunk"] .sidebar-link.active {
+  box-shadow: 0 0 16px rgba(255, 0, 255, 0.5), 0 0 32px rgba(255, 0, 255, 0.2);
+}
+
+[data-theme="cyberpunk"] .stat-card-glow {
+  background: var(--accent-secondary); opacity: 0.08;
+}
+
 /* ---------- Shared dynamic theming ---------- */
 body {
   background: var(--bg-primary);

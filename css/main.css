@@ -55,8 +55,47 @@ body {
   border-right: 1px solid var(--border-color);
   display: flex; flex-direction: column;
   z-index: var(--z-sidebar);
-  transition: transform var(--transition-normal);
+  transition: width 0.3s ease, min-width 0.3s ease;
   overflow-y: auto; overflow-x: hidden;
+  position: relative;
+}
+
+/* Sidebar collapse toggle button */
+.sidebar-toggle {
+  position: absolute; top: 10px; right: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--btn-secondary-bg);
+  color: var(--text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; z-index: 10;
+  transition: all var(--transition-fast); opacity: 0;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.sidebar:hover .sidebar-toggle { opacity: 1; }
+.sidebar-toggle:hover {
+  background: var(--accent-primary); color: #fff; border-color: var(--accent-primary);
+}
+.sidebar-toggle .toggle-icon { transition: transform 0.3s ease; display: inline-block; }
+
+/* Collapsed sidebar (desktop) */
+@media (min-width: 901px) {
+  .sidebar.collapsed {
+    width: var(--sidebar-collapsed); min-width: var(--sidebar-collapsed);
+  }
+  .sidebar.collapsed .sidebar-toggle { right: 50%; transform: translateX(50%); }
+  .sidebar.collapsed .sidebar-toggle .toggle-icon { transform: rotate(180deg); }
+  .sidebar.collapsed .sidebar-brand-text,
+  .sidebar.collapsed .sidebar-link span:not(.nav-icon),
+  .sidebar.collapsed .sidebar-ver,
+  .sidebar.collapsed .user-info,
+  .sidebar.collapsed .sidebar-footer .sidebar-link span:not(.nav-icon) { display: none; }
+  .sidebar.collapsed .sidebar-link { justify-content: center; padding: 12px; }
+  .sidebar.collapsed .sidebar-brand { justify-content: center; padding: 14px 8px; }
+  .sidebar.collapsed .sidebar-nav { padding: 8px 6px; }
+  .sidebar.collapsed .sidebar-footer { padding: 8px 6px; }
+  .sidebar.collapsed .sidebar-user { justify-content: center; padding: 6px; }
+  .sidebar.collapsed .user-avatar { width: 32px; height: 32px; font-size: 16px; }
 }
 
 .sidebar-brand {

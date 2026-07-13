@@ -64,6 +64,7 @@ class GameEngine {
 
     // Combo tracking
     this.comboCount = 0;
+    this.maxCombo = 0;
 
     // Death overlay animation
     this.deathOverlayAlpha = 0;
@@ -144,6 +145,7 @@ class GameEngine {
     this.foodEaten = 0;
     this.score = 0;
     this.comboCount = 0;
+    this.maxCombo = 0;
     this.tickAccumulator = 0;
     this.deathOverlayAlpha = 0;
     this.deathAnimationTime = 0;
@@ -350,6 +352,7 @@ class GameEngine {
     if (this.foodManager.checkFoodCollision(this.snake.head.x, this.snake.head.y)) {
       const now = Date.now();
       const combo = this.foodManager.updateCombo(now);
+      if (combo > this.maxCombo) this.maxCombo = combo;
       const foodScore = this.foodManager.calculateFoodScore();
 
       this.snake.grow(1);
@@ -560,6 +563,7 @@ class GameEngine {
         mode: this.mode, score: this.score,
         length: this.snake ? this.snake.length : 0,
         duration: Math.round(this.gameTime), foodEaten: this.foodEaten,
+        maxCombo: this.maxCombo,
         coinsEarned, reason,
         isNewHighScore: this.score >= stats.highestScore,
         highestScore: stats.highestScore,

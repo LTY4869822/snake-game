@@ -56,6 +56,15 @@ class GameOverModal {
     document.getElementById('go-duration').textContent =
       mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
 
+    // Max combo
+    const comboRow = document.getElementById('go-combo-row');
+    if (result.maxCombo >= 3) {
+      comboRow.style.display = 'flex';
+      document.getElementById('go-combo').textContent = `×${result.maxCombo}`;
+    } else {
+      comboRow.style.display = 'none';
+    }
+
     // New record highlight
     const recordRow = document.getElementById('go-record-row');
     if (result.isNewHighScore && result.score > 0) {
@@ -63,6 +72,32 @@ class GameOverModal {
       document.getElementById('go-record').textContent = `超越历史最高 ${result.highestScore}!`;
     } else {
       recordRow.style.display = 'none';
+    }
+
+    // Performance comparison vs average
+    const compareRow = document.getElementById('go-compare-row');
+    const localScores = StorageManager.getLocalScores()
+      .filter(s => s.mode === result.mode);
+    if (localScores.length >= 2 && result.score > 0) {
+      const scores = localScores.map(s => s.score);
+      const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      if (avg > 0 && result.score !== Math.round(avg)) {
+        const diff = result.score - Math.round(avg);
+        const diffPct = Math.round(Math.abs(diff) / avg * 100);
+        compareRow.style.display = 'flex';
+        const el = document.getElementById('go-compare');
+        if (diff > 0) {
+          el.className = 'gameover-stat-value go-compare-up';
+          el.textContent = `↑${diffPct}% (${diff > 0 ? '+' : ''}${diff})`;
+        } else {
+          el.className = 'gameover-stat-value go-compare-down';
+          el.textContent = `↓${diffPct}% (${diff})`;
+        }
+      } else {
+        compareRow.style.display = 'none';
+      }
+    } else {
+      compareRow.style.display = 'none';
     }
 
     // Coins earned
@@ -78,20 +113,31 @@ class GameOverModal {
       title.textContent = '游戏结束';
     }
 
+    // Achievement badges in modal
+    const achContainer = document.getElementById('go-achievements');
+    if (result.achievementsUnlocked && result.achievementsUnlocked.length > 0) {
+      achContainer.style.display = 'flex';
+      achContainer.innerHTML = result.achievementsUnlocked.map(id => {
+        const ach = CONFIG.ACHIEVEMENTS.find(a => a.id === id);
+        return ach
+          ? `<span class="go-ach-badge">${ach.icon} ${ach.name} <small style="opacity:0.7">+${ach.reward}🪙</small></span>`
+          : '';
+      }).join('');
+    } else {
+      achContainer.style.display = 'none';
+      achContainer.innerHTML = '';
+    }
+
     // Draw score comparison chart
     const stats = StorageManager.getStats();
-    const localScores = StorageManager.getLocalScores()
-      .filter(s => s.mode === result.mode)
-      .slice(0, 10)
-      .map(s => s.score)
-      .reverse();
+    const chartScores = localScores.slice(0, 10).map(s => s.score).reverse();
 
     const chartCanvas = document.getElementById('go-chart');
     if (chartCanvas) {
-      Renderer.drawScoreChart(chartCanvas, result.score, stats.highestScore, localScores);
+      Renderer.drawScoreChart(chartCanvas, result.score, stats.highestScore, chartScores);
     }
 
-    // Check achievements unlocked
+    // Also toast achievements
     if (result.achievementsUnlocked && result.achievementsUnlocked.length > 0) {
       const achNames = result.achievementsUnlocked.map(id => {
         const ach = CONFIG.ACHIEVEMENTS.find(a => a.id === id);

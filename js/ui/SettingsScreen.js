@@ -17,16 +17,19 @@ class SettingsScreen {
     const themeBtn = document.getElementById('setting-theme-btn');
     if (themeBtn) {
       themeBtn.addEventListener('click', () => {
+        const cycle = { dark: 'light', light: 'cyberpunk', cyberpunk: 'dark' };
         const settings = StorageManager.getSettings();
-        const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
+        const newTheme = cycle[settings.theme] || 'dark';
         settings.theme = newTheme; StorageManager.saveSettings(settings);
         document.body.dataset.theme = newTheme;
-        themeBtn.textContent = newTheme === 'dark' ? '暗夜霓虹' : '清新森系';
+        const names = { dark: '暗夜霓虹', light: '清新森系', cyberpunk: '赛博朋克' };
+        const icons = { dark: '🌙', light: '☀️', cyberpunk: '🌆' };
+        themeBtn.textContent = names[newTheme] || '暗夜霓虹';
         // Sync sidebar button
         const sidebarBtn = document.getElementById('sidebar-theme-btn');
         if (sidebarBtn) {
-          sidebarBtn.querySelector('.nav-icon').textContent = newTheme === 'dark' ? '🌙' : '☀️';
-          sidebarBtn.querySelector('span:last-child').textContent = newTheme === 'dark' ? '暗夜霓虹' : '清新森系';
+          sidebarBtn.querySelector('.nav-icon').textContent = icons[newTheme] || '🌙';
+          sidebarBtn.querySelector('span:last-child').textContent = names[newTheme] || '暗夜霓虹';
         }
         ScreenManager.showToast('主题已切换', 'success');
       });
@@ -92,7 +95,8 @@ class SettingsScreen {
     const s = StorageManager.getSettings();
     document.body.dataset.theme = s.theme || 'dark';
     const themeBtn = document.getElementById('setting-theme-btn');
-    if (themeBtn) themeBtn.textContent = s.theme === 'dark' ? '暗夜霓虹' : '清新森系';
+    const names = { dark: '暗夜霓虹', light: '清新森系', cyberpunk: '赛博朋克' };
+    if (themeBtn) themeBtn.textContent = names[s.theme] || '暗夜霓虹';
     const sfx = document.getElementById('setting-sfx-volume'); if (sfx) sfx.value = s.sfxVolume || 70;
     const bgm = document.getElementById('setting-bgm-volume'); if (bgm) bgm.value = s.bgmVolume || 40;
     document.querySelectorAll('[data-ctrl]').forEach(b => b.classList.toggle('active', b.dataset.ctrl === (s.controlScheme || 'wasd')));

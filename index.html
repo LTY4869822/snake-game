@@ -13,10 +13,8 @@
 
   <!-- ==================== Loading Overlay ==================== -->
   <div id="loading-overlay" class="loading-overlay">
-    <div class="loading-spinner">
-      <svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4"/></svg>
-    </div>
-    <p class="loading-text">Loading...</p>
+    <canvas id="loading-canvas" width="120" height="120"></canvas>
+    <p class="loading-text">SNAKE PRO</p>
   </div>
 
   <!-- ==================== APP SHELL ==================== -->
@@ -24,6 +22,9 @@
 
     <!-- ===== Sidebar ===== -->
     <aside id="sidebar" class="sidebar">
+      <button class="sidebar-toggle" id="sidebar-toggle" title="折叠侧边栏">
+        <span class="toggle-icon">◀</span>
+      </button>
       <div class="sidebar-brand">
         <canvas id="logo-canvas" width="48" height="48"></canvas>
         <div class="sidebar-brand-text">
@@ -386,15 +387,25 @@
           <span class="gameover-stat-label">游戏时长</span>
           <span class="gameover-stat-value" id="go-duration">0s</span>
         </div>
+        <div class="gameover-stat-row" id="go-combo-row" style="display:none">
+          <span class="gameover-stat-label">🔥 最高连击</span>
+          <span class="gameover-stat-value" id="go-combo">×1</span>
+        </div>
         <div class="gameover-stat-row highlight" id="go-record-row" style="display:none">
           <span class="gameover-stat-label">🎉 新记录!</span>
           <span class="gameover-stat-value" id="go-record"></span>
+        </div>
+        <div class="gameover-stat-row" id="go-compare-row" style="display:none">
+          <span class="gameover-stat-label">📊 对比平均</span>
+          <span class="gameover-stat-value" id="go-compare"></span>
         </div>
         <div class="gameover-stat-row">
           <span class="gameover-stat-label">获得金币</span>
           <span class="gameover-stat-value coins" id="go-coins">+0</span>
         </div>
       </div>
+      <!-- Achievement badges unlocked this game -->
+      <div class="go-achievements" id="go-achievements" style="display:none"></div>
       <canvas id="go-chart" width="280" height="120" class="gameover-chart"></canvas>
       <div class="gameover-buttons">
         <button class="btn btn-primary" id="btn-play-again">再来一局</button>

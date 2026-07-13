@@ -220,6 +220,28 @@
 .gameover-chart { margin: 10px auto; display: block; border-radius: var(--radius-sm); }
 .gameover-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 
+/* GameOver achievements badges */
+.go-achievements {
+  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+  margin-bottom: 8px;
+}
+.go-ach-badge {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 20px;
+  background: rgba(46, 213, 115, 0.1); border: 1px solid rgba(46, 213, 115, 0.25);
+  font-size: 12px; font-weight: 600; color: var(--accent-success);
+  animation: ach-pop-in 0.4s ease-out backwards;
+}
+.go-ach-badge:nth-child(1) { animation-delay: 0.1s; }
+.go-ach-badge:nth-child(2) { animation-delay: 0.2s; }
+.go-ach-badge:nth-child(3) { animation-delay: 0.3s; }
+@keyframes ach-pop-in {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+.go-compare-up { color: var(--accent-success); }
+.go-compare-down { color: var(--accent-danger); }
+
 /* ============ TOAST ============ */
 .toast-container { position: fixed; top: 20px; right: 20px; z-index: var(--z-toast); display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast {
@@ -239,10 +261,22 @@
 .loading-overlay {
   position: fixed; inset: 0; background: var(--bg-primary);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: var(--z-loading); gap: 14px; transition: opacity 0.3s ease;
+  z-index: var(--z-loading); gap: 16px; transition: opacity 0.4s ease;
 }
 .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-.loading-spinner svg { width: 44px; height: 44px; animation: spin 1s linear infinite; }
-.loading-spinner circle { stroke: var(--accent-primary); stroke-dasharray: 100; stroke-dashoffset: 75; stroke-linecap: round; }
-.loading-text { font-size: 13px; color: var(--text-secondary); letter-spacing: 2px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+#loading-canvas {
+  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 30px rgba(108, 92, 231, 0.15);
+}
+.loading-text {
+  font-size: 18px; font-weight: 800; letter-spacing: 4px;
+  background: var(--logo-gradient);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: loading-pulse 1.5s ease-in-out infinite;
+}
+@keyframes loading-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}

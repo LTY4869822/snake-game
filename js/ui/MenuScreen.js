@@ -204,11 +204,12 @@ class MenuScreen {
   }
 
   /**
-   * Toggle between dark and light themes
+   * Cycle theme: dark → light → cyberpunk → dark
    */
   _toggleTheme() {
-    const current = document.body.dataset.theme;
-    const newTheme = current === 'dark' ? 'light' : 'dark';
+    const cycle = { dark: 'light', light: 'cyberpunk', cyberpunk: 'dark' };
+    const current = document.body.dataset.theme || 'dark';
+    const newTheme = cycle[current] || 'dark';
     document.body.dataset.theme = newTheme;
 
     const settings = StorageManager.getSettings();
@@ -219,16 +220,23 @@ class MenuScreen {
   }
 
   _updateThemeUI(theme) {
+    const themeInfo = {
+      dark: { icon: '🌙', name: '暗夜霓虹' },
+      light: { icon: '☀️', name: '清新森系' },
+      cyberpunk: { icon: '🌆', name: '赛博朋克' }
+    };
+    const info = themeInfo[theme] || themeInfo.dark;
+
     const btn = document.getElementById('sidebar-theme-btn');
     if (btn) {
       const icon = btn.querySelector('.nav-icon');
       const text = btn.querySelector('span:last-child');
-      if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
-      if (text) text.textContent = theme === 'dark' ? '暗夜霓虹' : '清新森系';
+      if (icon) icon.textContent = info.icon;
+      if (text) text.textContent = info.name;
     }
     const settingBtn = document.getElementById('setting-theme-btn');
     if (settingBtn) {
-      settingBtn.textContent = theme === 'dark' ? '暗夜霓虹' : '清新森系';
+      settingBtn.textContent = info.name;
     }
   }
 
