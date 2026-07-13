@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Pro | 登录</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --accent-glow: #00d2ff;
+      --bg-dark: #0a0a1a;
+      --panel-bg: #111128;
+      --text-primary: #e8e8f0;
+      --text-secondary: #8888aa;
+      --danger: #ff4757;
+      --success: #2ed573;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-dark);
+      overflow: hidden;
+      height: 100vh;
+      user-select: none;
+    }
+
+    /* ============ Page Container ============ */
+    #auth-page {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 100vh;
+    }
+
+    /* ============ Left Panel - Branding & Characters ============ */
+    .left-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 30%, #0d1b3e 70%, #0a0a2e 100%);
+      padding: 40px 48px;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+
+    /* Grid overlay */
+    .left-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(rgba(108,92,231,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(108,92,231,0.04) 1px, transparent 1px);
+      background-size: 30px 30px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orbs */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-orb.purple {
+      width: 280px; height: 280px;
+      background: rgba(108,92,231,0.3);
+      top: 15%; right: 10%;
+    }
+    .glow-orb.cyan {
+      width: 200px; height: 200px;
+      background: rgba(0,210,255,0.2);
+      bottom: 25%; left: 15%;
+    }
+    .glow-orb.pink {
+      width: 180px; height: 180px;
+      background: rgba(255,64,129,0.15);
+      top: 45%; left: 40%;
+    }
+
+    /* Branding */
+    .brand {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand-logo {
+      width: 40px; height: 40px;
+      position: relative;
+    }
+    .brand-logo .snake-mini {
+      width: 100%; height: 100%;
+    }
+    .brand-text {
+      font-size: 20px; font-weight: 800; letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent-glow));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .brand-sub {
+      font-size: 11px; color: var(--text-secondary); letter-spacing: 4px; margin-top: 2px;
+    }
+
+    /* Scene - snake characters */
+    .scene {
+      position: relative; z-index: 10;
+      height: 420px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scene-canvas {
+      position: relative;
+      width: 480px; height: 360px;
+    }
+
+    /* ---------- Snake Characters ---------- */
+    .snake-char {
+      position: absolute;
+      transition: transform 0.05s linear;
+    }
+
+    /* Main Neon Snake - positioned center */
+    .snake-neon {
+      left: 180px; top: 140px;
+      z-index: 3;
+    }
+    .snake-neon .snake-body-group {
+      position: relative;
+      transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    /* Snake segment */
+    .snake-seg {
+      position: absolute;
+      border-radius: 12px;
+      transition: all 0.15s ease-out;
+    }
+
+    /* Head */
+    .snake-head {
+      position: absolute;
+      width: 36px; height: 36px;
+      background: var(--accent-light);
+      border-radius: 12px;
+      z-index: 5;
+      transition: all 0.08s ease-out;
+      box-shadow: 0 0 20px rgba(162,155,254,0.6);
+    }
+    .snake-head .snake-eyes {
+      position: absolute; display: flex; gap: 8px;
+      top: 8px; left: 8px;
+    }
+    .snake-head .snake-eye {
+      width: 10px; height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      transition: height 0.1s ease;
+    }
+    .snake-head .snake-pupil {
+      width: 5px; height: 6px;
+      background: #111;
+      border-radius: 50%;
+      transition: transform 0.1s ease-out;
+    }
+
+    /* Body segments */
+    .snake-body {
+      position: absolute;
+      border-radius: 10px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(108,92,231,0.4);
+      transition: all 0.15s ease-out;
+    }
+
+    /* Gold Snake - smaller, companion */
+    .snake-gold {
+      left: 60px; top: 200px;
+      z-index: 2;
+    }
+    .snake-gold .snake-head {
+      background: #ffd700;
+      box-shadow: 0 0 16px rgba(255,215,0,0.5);
+    }
+    .snake-gold .snake-body {
+      background: #ffc107;
+      box-shadow: 0 0 6px rgba(255,193,7,0.3);
+    }
+
+    /* Small green snake */
+    .snake-green {
+      left: 320px; top: 260px;
+      z-index: 1;
+    }
+    .snake-green .snake-head {
+      background: #2ed573;
+      box-shadow: 0 0 12px rgba(46,213,115,0.4);
+    }
+    .snake-green .snake-body {
+      background: #7bed9f;
+      box-shadow: 0 0 5px rgba(46,213,115,0.25);
+    }
+
+    /* Floating food items */
+    .food-float {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+      transition: all 0.3s ease-out;
+    }
+    .food-apple {
+      width: 28px; height: 28px;
+      background: radial-gradient(circle at 35% 35%, #ff8a80, #d50000);
+      box-shadow: 0 0 14px rgba(255,107,107,0.5);
+      animation: food-bob 2.5s ease-in-out infinite;
+    }
+    .food-orange {
+      width: 22px; height: 22px;
+      background: radial-gradient(circle at 35% 35%, #ffcc80, #ff6d00);
+      box-shadow: 0 0 10px rgba(255,152,0,0.4);
+      animation: food-bob 3s ease-in-out infinite 0.5s;
+    }
+    .food-gem {
+      width: 24px; height: 24px;
+      background: radial-gradient(circle at 35% 35%, #b388ff, #7c4dff);
+      box-shadow: 0 0 14px rgba(124,77,255,0.5);
+      animation: food-bob 2.8s ease-in-out infinite 1s;
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+    }
+
+    @keyframes food-bob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      30% { transform: translateY(-12px) scale(1.12); }
+      60% { transform: translateY(-4px) scale(0.95); }
+    }
+
+    /* Scene particles */
+    .particle-dot {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: var(--accent-light);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: dot-drift 6s linear infinite;
+    }
+    @keyframes dot-drift {
+      0% { opacity: 0; transform: translateY(0) translateX(0); }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-200px) translateX(40px); }
+    }
+
+    /* Footer */
+    .left-panel .footer-row {
+      display: flex; gap: 28px; font-size: 12px;
+      color: rgba(255,255,255,0.4); z-index: 10; position: relative;
+    }
+    .left-panel .footer-row a {
+      color: inherit; text-decoration: none; transition: color 0.2s;
+    }
+    .left-panel .footer-row a:hover { color: #fff; }
+
+    /* ============ Right Panel - Form ============ */
+    .right-panel {
+      display: flex; align-items: center; justify-content: center;
+      background: #0f1125;
+      padding: 40px;
+      position: relative;
+    }
+
+    /* Subtle card glow behind form */
+    .right-panel::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(108,92,231,0.08) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .form-container {
+      width: 100%; max-width: 400px;
+      position: relative; z-index: 1;
+    }
+
+    /* Icon */
+    .form-icon {
+      display: flex; justify-content: center; margin-bottom: 20px;
+    }
+    .form-icon svg {
+      width: 36px; height: 36px;
+    }
+
+    .form-header { text-align: center; margin-bottom: 32px; }
+    .form-header h1 {
+      font-size: 26px; font-weight: 700; color: var(--text-primary);
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+    .form-header p { font-size: 14px; color: var(--text-secondary); }
+
+    /* Form fields */
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;
+      transition: color 0.3s;
+    }
+    .form-group label.error-label { color: var(--danger); }
+    .input-wrapper { position: relative; }
+    .form-group input {
+      width: 100%; height: 48px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 0 44px 0 16px;
+      font-size: 15px; font-family: inherit; color: var(--text-primary);
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .form-group input:focus {
+      border-color: var(--accent);
+      background: rgba(108,92,231,0.06);
+      box-shadow: 0 0 0 4px rgba(108,92,231,0.08);
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.15); }
+    .form-group input.error { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(255,71,87,0.08); }
+
+    /* Password toggle */
+    .toggle-password {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.3); padding: 6px;
+      transition: color 0.2s;
+    }
+    .toggle-password:hover { color: var(--text-primary); }
+
+    /* Form options */
+    .form-options {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .remember-me {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-secondary); cursor: pointer;
+    }
+    .remember-me input[type="checkbox"] {
+      width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+    }
+    .forgot-link {
+      font-size: 13px; color: var(--accent-light); text-decoration: none;
+      font-weight: 500; transition: opacity 0.2s;
+    }
+    .forgot-link:hover { opacity: 0.8; }
+
+    /* Buttons */
+    .btn-primary {
+      position: relative;
+      width: 100%; height: 50px; border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #4834d4);
+      color: #fff; font-size: 15px; font-weight: 600; font-family: inherit;
+      cursor: pointer; overflow: hidden; margin-bottom: 12px;
+      transition: all 0.3s;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #7d6ff0, #5a48e8);
+      box-shadow: 0 8px 24px rgba(108,92,231,0.4);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-primary .btn-text { display: inline-block; transition: all 0.3s; }
+    .btn-primary .btn-hover {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(135deg, #7d6ff0, var(--accent-glow));
+      opacity: 0; transition: all 0.3s; border-radius: 14px;
+    }
+    .btn-primary:hover .btn-text { transform: translateX(40px); opacity: 0; }
+    .btn-primary:hover .btn-hover { opacity: 1; }
+
+    /* Guest button */
+    .btn-guest {
+      width: 100%; height: 50px; border-radius: 14px;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-secondary); font-size: 15px; font-weight: 500;
+      font-family: inherit; cursor: pointer;
+      transition: all 0.3s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-guest:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+    }
+
+    /* Messages */
+    .msg {
+      display: none; padding: 10px 14px; font-size: 13px;
+      border-radius: 10px; margin-bottom: 16px;
+    }
+    .msg-error { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.2); color: var(--danger); }
+    .msg-success { background: rgba(46,213,115,0.1); border: 1px solid rgba(46,213,115,0.2); color: var(--success); }
+
+    /* Switch link */
+    .switch-link {
+      text-align: center; font-size: 13px; color: var(--text-secondary); margin-top: 28px;
+    }
+    .switch-link a {
+      color: var(--accent-light); font-weight: 600; text-decoration: none; cursor: pointer;
+    }
+    .switch-link a:hover { text-decoration: underline; }
+
+    /* Form switching animation */
+    .form-page { display: none; }
+    .form-page.active { display: block; animation: fadeSlideIn 0.35s ease-out; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============ Responsive ============ */
+    @media (max-width: 900px) {
+      #auth-page { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="auth-page">
+
+  <!-- ==================== LEFT PANEL ==================== -->
+  <div class="left-panel" id="left-panel">
+    <!-- Glow orbs -->
+    <div class="glow-orb purple"></div>
+    <div class="glow-orb cyan"></div>
+    <div class="glow-orb pink"></div>
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 40 40" fill="none">
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
+              <stop stop-color="#a29bfe"/><stop offset="1" stop-color="#00d2ff"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="18" width="22" height="12" rx="6" fill="url(#logoGrad)" opacity="0.4"/>
+          <rect x="6" y="12" width="28" height="12" rx="6" fill="url(#logoGrad)" opacity="0.7"/>
+          <rect x="10" y="6" width="26" height="12" rx="6" fill="url(#logoGrad)"/>
+          <circle cx="32" cy="10" r="2.5" fill="#fff"/>
+          <circle cx="32" cy="14" r="2.5" fill="#fff"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-text">SNAKE PRO</div>
+        <div class="brand-sub">贪吃蛇 · 极致体验</div>
+      </div>
+    </div>
+
+    <!-- Character Scene -->
+    <div class="scene">
+      <div class="scene-canvas" id="scene">
+        <!-- Neon snake (main) -->
+        <div class="snake-char snake-neon" id="snake-neon">
+          <div class="snake-head" id="neon-head" style="left:0;top:0;">
+            <div class="snake-eyes" id="neon-eyes">
+              <div class="snake-eye" id="neon-eye-l"><div class="snake-pupil" id="neon-pupil-l"></div></div>
+              <div class="snake-eye" id="neon-eye-r"><div class="snake-pupil" id="neon-pupil-r"></div></div>
+            </div>
+          </div>
+          <div class="snake-body" id="neon-s1" style="left:-18px;top:5px;width:22px;height:26px;"></div>
+          <div class="snake-body" id="neon-s2" style="left:-34px;top:8px;width:20px;height:22px;"></div>
+          <div class="snake-body" id="neon-s3" style="left:-48px;top:12px;width:18px;height:18px;"></div>
+          <div class="snake-body" id="neon-s4" style="left:-60px;top:15px;width:16px;height:15px;opacity:0.7;"></div>
+          <div class="snake-body" id="neon-s5" style="left:-70px;top:17px;width:14px;height:13px;opacity:0.5;"></div>
+        </div>
+
+        <!-- Gold snake -->
+        <div class="snake-char snake-gold" id="snake-gold">
+          <div class="snake-head" id="gold-head" style="left:0;top:0;width:28px;height:28px;">
+            <div class="snake-eyes" style="top:6px;left:6px;gap:6px;">
+              <div class="snake-eye" id="gold-eye-l" style="width:8px;height:10px;"><div class="snake-pupil" id="gold-pupil-l" style="width:4px;height:5px;"></div></div>
+              <div class="snake-eye" id="gold-eye-r" style="width:8px;height:10px;"><div class="snake-pupil" id="gold-pupil-r" style="width:4px;height:5px;"></div></div>
+            </div>
+          </div>
+          <div class="snake-body" style="left:-15px;top:4px;width:18px;height:20px;"></div>
+          <div class="snake-body" style="left:-28px;top:6px;width:16px;height:17px;opacity:0.7;"></div>
+        </div>
+
+        <!-- Green snake -->
+        <div class="snake-char snake-green" id="snake-green">
+          <div class="snake-head" id="green-head" style="left:0;top:0;width:24px;height:24px;">
+            <div class="snake-eyes" style="top:5px;left:5px;gap:5px;">
+              <div class="snake-eye" id="green-eye-l" style="width:7px;height:9px;"><div class="snake-pupil" id="green-pupil-l" style="width:4px;height:4px;"></div></div>
+              <div class="snake-eye" id="green-eye-r" style="width:7px;height:9px;"><div class="snake-pupil" id="green-pupil-r" style="width:4px;height:4px;"></div></div>
+            </div>
+          </div>
+          <div class="snake-body" style="left:-13px;top:3px;width:16px;height:18px;"></div>
+          <div class="snake-body" style="left:-24px;top:5px;width:14px;height:15px;opacity:0.7;"></div>
+        </div>
+
+        <!-- Floating food -->
+        <div class="food-float food-apple" id="food1" style="left:120px;top:60px;"></div>
+        <div class="food-float food-orange" id="food2" style="left:350px;top:100px;"></div>
+        <div class="food-float food-gem" id="food3" style="left:200px;top:280px;"></div>
+        <div class="food-float food-apple" id="food4" style="left:380px;top:50px;width:20px;height:20px;animation-delay:1.5s;"></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-row">
+      <a href="#">隐私政策</a>
+      <a href="#">服务条款</a>
+      <a href="#">联系我们</a>
+      <span style="margin-left:auto;opacity:0.5">v1.0.0</span>
+    </div>
+  </div>
+
+  <!-- ==================== RIGHT PANEL ==================== -->
+  <div class="right-panel" id="right-panel">
+    <div class="form-container">
+
+      <div class="form-icon">
+        <svg viewBox="0 0 40 40" fill="none">
+          <defs>
+            <linearGradient id="iconGrad" x1="0" y1="0" x2="40" y2="40">
+              <stop stop-color="#a29bfe"/><stop offset="1" stop-color="#00d2ff"/>
+            </linearGradient>
+          </defs>
+          <rect x="3" y="16" width="20" height="10" rx="5" fill="url(#iconGrad)" opacity="0.4"/>
+          <rect x="7" y="10" width="26" height="10" rx="5" fill="url(#iconGrad)" opacity="0.7"/>
+          <rect x="11" y="4" width="22" height="10" rx="5" fill="url(#iconGrad)"/>
+          <circle cx="29" cy="7" r="2" fill="#fff"/>
+          <circle cx="29" cy="11" r="2" fill="#fff"/>
+        </svg>
+      </div>
+
+      <!-- ===== Login Form ===== -->
+      <div class="form-page active" id="login-page">
+        <div class="form-header">
+          <h1>欢迎回来！</h1>
+          <p>登录账号，同步游戏数据</p>
+        </div>
+
+        <form onsubmit="return handleLogin(event)">
+          <div class="form-group">
+            <label id="login-user-label" for="login-user">用户名</label>
+            <div class="input-wrapper">
+              <input type="text" id="login-user" placeholder="请输入用户名" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="login-pwd-label" for="login-pwd">密码</label>
+            <div class="input-wrapper">
+              <input type="password" id="login-pwd" placeholder="••••••••" />
+              <button type="button" class="toggle-password" id="login-toggle">
+                <svg id="login-eye-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="login-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-options">
+            <label class="remember-me"><input type="checkbox" checked /> 记住我</label>
+            <a href="#" class="forgot-link">忘记密码？</a>
+          </div>
+
+          <div class="msg msg-error" id="login-err"></div>
+          <div class="msg msg-success" id="login-ok"></div>
+
+          <button type="submit" class="btn-primary" id="login-btn">
+            <span class="btn-text">登录</span>
+            <div class="btn-hover"><span>进入游戏</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+
+          <button type="button" class="btn-guest" onclick="loginAsGuest()">
+            🐍 游客模式，即刻体验
+          </button>
+        </form>
+
+        <div class="switch-link">
+          还没有账号？ <a onclick="switchToRegister()">立即注册</a>
+        </div>
+      </div>
+
+      <!-- ===== Register Form ===== -->
+      <div class="form-page" id="register-page">
+        <div class="form-header">
+          <h1>创建账号</h1>
+          <p>加入蛇王争霸，同步你的战绩</p>
+        </div>
+
+        <form onsubmit="return handleRegister(event)">
+          <div class="form-group">
+            <label id="reg-user-label" for="reg-user">用户名</label>
+            <div class="input-wrapper">
+              <input type="text" id="reg-user" placeholder="2-20位字符" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="reg-pwd-label" for="reg-pwd">设置密码</label>
+            <div class="input-wrapper">
+              <input type="password" id="reg-pwd" placeholder="至少6位字符" />
+              <button type="button" class="toggle-password" id="reg-toggle">
+                <svg id="reg-eye-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="reg-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="reg-cfrm-label" for="reg-cfrm">确认密码</label>
+            <div class="input-wrapper">
+              <input type="password" id="reg-cfrm" placeholder="再次输入密码" />
+            </div>
+          </div>
+
+          <div class="msg msg-error" id="reg-err"></div>
+          <div class="msg msg-success" id="reg-ok"></div>
+
+          <button type="submit" class="btn-primary" id="reg-btn">
+            <span class="btn-text">注册</span>
+            <div class="btn-hover"><span>开始冒险</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+        </form>
+
+        <div class="switch-link">
+          已有账号？ <a onclick="switchToLogin()">立即登录</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==================== GLOBAL STATE ====================
+  let mouseX = 0, mouseY = 0;
+  let currentForm = 'login';
+  let isTyping = false;
+  let isError = false;
+  let isPeeking = false;
+  let typingTimer = null;
+  let errorTimer = null;
+  let blinkTimers = { neon: null, gold: null, green: null };
+
+  // ==================== PASSWORD TOGGLE ====================
+  function setupPwToggle(inputId, btnId, onId, offId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    const onSvg = document.getElementById(onId);
+    const offSvg = document.getElementById(offId);
+    let show = false;
+
+    btn.addEventListener('click', () => {
+      show = !show;
+      input.type = show ? 'text' : 'password';
+      onSvg.style.display = show ? 'none' : 'block';
+      offSvg.style.display = show ? 'block' : 'none';
+      updateScene();
+      if (show && input.value.length > 0) schedulePeek();
+    });
+
+    input.addEventListener('input', () => {
+      updateScene();
+      if (show && input.value.length > 0) schedulePeek();
+    });
+    input.addEventListener('focus', updateScene);
+    input.addEventListener('blur', () => { setTimeout(updateScene, 100); });
+  }
+
+  setupPwToggle('login-pwd', 'login-toggle', 'login-eye-on', 'login-eye-off');
+  setupPwToggle('reg-pwd', 'reg-toggle', 'reg-eye-on', 'reg-eye-off');
+
+  // ==================== MOUSE TRACKING ====================
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (!isTyping && !isError) updateScene();
+  });
+
+  // Typing detection
+  document.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('focus', () => { setTyping(true); });
+    inp.addEventListener('blur', () => { setTyping(false); });
+    inp.addEventListener('input', () => { updateScene(); });
+  });
+
+  function setTyping(typing) {
+    isTyping = typing;
+    if (typing) {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => { isTyping = false; updateScene(); }, 600);
+    }
+    updateScene();
+  }
+
+  // ==================== BLINK ANIMATIONS ====================
+  function scheduleBlink(snakeId, getState, setState) {
+    const delay = 2000 + Math.random() * 3500;
+    setTimeout(() => {
+      setState(true); updateScene();
+      setTimeout(() => { setState(false); updateScene(); scheduleBlink(snakeId, getState, setState); }, 120);
+    }, delay);
+  }
+
+  let neonBlink = false, goldBlink = false, greenBlink = false;
+  scheduleBlink('neon', () => neonBlink, v => neonBlink = v);
+  scheduleBlink('gold', () => goldBlink, v => goldBlink = v);
+  scheduleBlink('green', () => greenBlink, v => greenBlink = v);
+
+  // ==================== PEEK ANIMATION ====================
+  function isAnyPwVisible() {
+    const pws = [document.getElementById('login-pwd'), document.getElementById('reg-pwd')];
+    return pws.some(i => i.value.length > 0 && i.type === 'text');
+  }
+
+  function schedulePeek() {
+    setTimeout(() => {
+      if (isAnyPwVisible()) {
+        isPeeking = true; updateScene();
+        setTimeout(() => { isPeeking = false; updateScene(); schedulePeek(); }, 700);
+      }
+    }, 2000 + Math.random() * 2500);
+  }
+
+  // ==================== SCENE UPDATE ====================
+  function calcPupil(eyeEl, maxDist) {
+    const r = eyeEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dx = mouseX - cx, dy = mouseY - cy;
+    const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+    const a = Math.atan2(dy, dx);
+    return { x: Math.cos(a) * dist, y: Math.sin(a) * dist };
+  }
+
+  function updateScene() {
+    const pwVisible = isAnyPwVisible();
+    const pwHidden = document.activeElement && document.activeElement.type === 'password';
+
+    // === NEON SNAKE (main character) ===
+    const neonHead = document.getElementById('neon-head');
+    const neonEyeL = document.getElementById('neon-eye-l');
+    const neonEyeR = document.getElementById('neon-eye-r');
+    const neonPupL = document.getElementById('neon-pupil-l');
+    const neonPupR = document.getElementById('neon-pupil-r');
+
+    neonEyeL.style.height = neonBlink ? '2px' : '12px';
+    neonEyeR.style.height = neonBlink ? '2px' : '12px';
+
+    // Head position based on mouse
+    const nr = neonHead.getBoundingClientRect();
+    const sceneR = document.getElementById('scene').getBoundingClientRect();
+    const relX = ((mouseX - sceneR.left) / sceneR.width - 0.5) * 2;
+    const relY = ((mouseY - sceneR.top) / sceneR.height - 0.5) * 2;
+
+    if (isError) {
+      // Shake effect handled separately
+    } else if (pwHidden) {
+      // Looking away from password
+      neonHead.style.transform = 'translate(-30px, -15px) rotate(-15deg)';
+    } else if (pwVisible && isPeeking) {
+      // Peeking at visible password
+      neonHead.style.transform = 'translate(-20px, 8px) rotate(-5deg)';
+    } else if (isTyping) {
+      // Curious about typing
+      neonHead.style.transform = `translate(${relX * 60 + 10}px, ${relY * 30 + 5}px) rotate(${relX * 10}deg)`;
+    } else {
+      // Follow mouse gently
+      neonHead.style.transform = `translate(${relX * 45}px, ${relY * 25}px) rotate(${relX * 8}deg)`;
+    }
+
+    // Pupils follow mouse
+    const npl = calcPupil(neonEyeL, 4);
+    const npr = calcPupil(neonEyeR, 4);
+    neonPupL.style.transform = `translate(${npl.x}px, ${npl.y}px)`;
+    neonPupR.style.transform = `translate(${npr.x}px, ${npr.y}px)`;
+
+    // === GOLD SNAKE ===
+    const goldHead = document.getElementById('gold-head');
+    const goldEyeL = document.getElementById('gold-eye-l');
+    const goldEyeR = document.getElementById('gold-eye-r');
+    goldEyeL.style.height = goldBlink ? '2px' : '10px';
+    goldEyeR.style.height = goldBlink ? '2px' : '10px';
+    goldHead.style.transform = `translate(${relX * -30}px, ${relY * -18}px) rotate(${relX * -6}deg)`;
+
+    const gpl = calcPupil(goldEyeL, 3);
+    document.getElementById('gold-pupil-l').style.transform = `translate(${gpl.x}px, ${gpl.y}px)`;
+    document.getElementById('gold-pupil-r').style.transform = `translate(${gpl.x}px, ${gpl.y}px)`;
+
+    // === GREEN SNAKE ===
+    const greenHead = document.getElementById('green-head');
+    const greenEyeL = document.getElementById('green-eye-l');
+    const greenEyeR = document.getElementById('green-eye-r');
+    greenEyeL.style.height = greenBlink ? '2px' : '9px';
+    greenEyeR.style.height = greenBlink ? '2px' : '9px';
+    greenHead.style.transform = `translate(${relX * 20}px, ${relY * -30}px) rotate(${relX * -4}deg)`;
+
+    const ggl = calcPupil(greenEyeL, 3);
+    document.getElementById('green-pupil-l').style.transform = `translate(${ggl.x}px, ${ggl.y}px)`;
+    document.getElementById('green-pupil-r').style.transform = `translate(${ggl.x}px, ${ggl.y}px)`;
+
+    // === FOOD POSITIONS ===
+    const foods = [
+      document.getElementById('food1'),
+      document.getElementById('food2'),
+      document.getElementById('food3'),
+      document.getElementById('food4')
+    ];
+    if (pwVisible) {
+      foods.forEach(f => { f.style.opacity = '0.3'; f.style.filter = 'blur(3px)'; });
+    } else {
+      foods.forEach(f => { f.style.opacity = ''; f.style.filter = ''; });
+    }
+  }
+
+  // ==================== ERROR ANIMATION ====================
+  function triggerError() {
+    if (errorTimer) clearTimeout(errorTimer);
+
+    isError = true;
+    updateScene();
+
+    // Shake the neon snake head
+    const neonHead = document.getElementById('neon-head');
+    neonHead.style.animation = 'none';
+    neonHead.offsetHeight; // reflow
+    neonHead.style.animation = 'shakeHead 0.7s cubic-bezier(0.36,0.07,0.19,0.97) both';
+
+    // Make food scatter
+    document.querySelectorAll('.food-float').forEach((f, i) => {
+      f.style.transform = `translate(${(Math.random()-0.5)*60}px, ${(Math.random()-0.5)*60}px) scale(0.5)`;
+      f.style.opacity = '0.4';
+    });
+
+    errorTimer = setTimeout(() => {
+      isError = false;
+      neonHead.style.animation = '';
+      document.querySelectorAll('.food-float').forEach(f => {
+        f.style.transform = ''; f.style.opacity = '';
+      });
+      updateScene();
+    }, 2200);
+  }
+
+  // Add shake keyframes
+  const shakeStyle = document.createElement('style');
+  shakeStyle.textContent = `
+    @keyframes shakeHead {
+      0%,100%{translate:0 0}
+      10%{translate:-10px 0}
+      20%{translate:8px 0}
+      30%{translate:-6px 0}
+      40%{translate:5px 0}
+      50%{translate:-3px 0}
+      60%{translate:2px 0}
+      70%{translate:-1px 0}
+    }
+  `;
+  document.head.appendChild(shakeStyle);
+
+  // ==================== FORM SWITCHING ====================
+  function switchToLogin() {
+    document.getElementById('register-page').classList.remove('active');
+    document.getElementById('login-page').classList.add('active');
+    currentForm = 'login';
+    clearMsgs();
+    updateScene();
+  }
+  function switchToRegister() {
+    document.getElementById('login-page').classList.remove('active');
+    document.getElementById('register-page').classList.add('active');
+    currentForm = 'register';
+    clearMsgs();
+    updateScene();
+  }
+
+  function clearMsgs() {
+    ['login-err','login-ok','reg-err','reg-ok'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    document.querySelectorAll('.form-group input').forEach(i => i.classList.remove('error'));
+    document.querySelectorAll('.form-group label').forEach(l => l.classList.remove('error-label'));
+  }
+
+  // ==================== FORM HANDLERS ====================
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('login-user').value.trim();
+    const pwd = document.getElementById('login-pwd').value;
+    const errEl = document.getElementById('login-err');
+    clearMsgs();
+
+    if (!user || user.length < 2) {
+      document.getElementById('login-user').classList.add('error');
+      document.getElementById('login-user-label').classList.add('error-label');
+      errEl.textContent = '请输入至少2位字符的用户名。';
+      errEl.style.display = 'block';
+      triggerError();
+      return false;
+    }
+    if (!pwd || pwd.length < 6) {
+      document.getElementById('login-pwd').classList.add('error');
+      document.getElementById('login-pwd-label').classList.add('error-label');
+      errEl.textContent = '密码至少需要6个字符。';
+      errEl.style.display = 'block';
+      triggerError();
+      return false;
+    }
+
+    const btn = document.getElementById('login-btn');
+    btn.querySelector('.btn-text').textContent = '登录中...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.querySelector('.btn-text').textContent = '登录';
+      btn.disabled = false;
+      errEl.textContent = '用户名或密码错误，请重试。';
+      errEl.style.display = 'block';
+      triggerError();
+    }, 1500);
+    return false;
+  }
+
+  function handleRegister(e) {
+    e.preventDefault();
+    const user = document.getElementById('reg-user').value.trim();
+    const pwd = document.getElementById('reg-pwd').value;
+    const cfrm = document.getElementById('reg-cfrm').value;
+    const errEl = document.getElementById('reg-err');
+    const okEl = document.getElementById('reg-ok');
+    clearMsgs();
+
+    if (!user || user.length < 2) {
+      document.getElementById('reg-user').classList.add('error');
+      document.getElementById('reg-user-label').classList.add('error-label');
+      errEl.textContent = '用户名至少需要2个字符。';
+      errEl.style.display = 'block';
+      triggerError();
+      return false;
+    }
+    if (!pwd || pwd.length < 6) {
+      document.getElementById('reg-pwd').classList.add('error');
+      document.getElementById('reg-pwd-label').classList.add('error-label');
+      errEl.textContent = '密码至少需要6个字符。';
+      errEl.style.display = 'block';
+      triggerError();
+      return false;
+    }
+    if (pwd !== cfrm) {
+      document.getElementById('reg-cfrm').classList.add('error');
+      document.getElementById('reg-cfrm-label').classList.add('error-label');
+      errEl.textContent = '两次输入的密码不一致。';
+      errEl.style.display = 'block';
+      triggerError();
+      return false;
+    }
+
+    const btn = document.getElementById('reg-btn');
+    btn.querySelector('.btn-text').textContent = '注册中...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.querySelector('.btn-text').textContent = '注册';
+      btn.disabled = false;
+      okEl.textContent = '注册成功！正在跳转...';
+      okEl.style.display = 'block';
+      setTimeout(() => switchToLogin(), 2000);
+    }, 1500);
+    return false;
+  }
+
+  function loginAsGuest() {
+    window.location.href = 'index.html';
+  }
+
+  // Init
+  updateScene();
+</script>
+</body>
+</html>

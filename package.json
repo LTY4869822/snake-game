@@ -1,0 +1,28 @@
+{
+  "name": "snake-game-pro",
+  "version": "1.0.0",
+  "description": "Snake Pro - 贪吃蛇网页版，全栈游戏（Canvas + Node.js + MongoDB）",
+  "scripts": {
+    "start:backend": "cd backend && node server.js",
+    "dev:backend": "cd backend && npx nodemon server.js",
+    "start:frontend": "npx live-server frontend --port=5500 --no-browser",
+    "dev": "npx concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
+    "install:all": "cd backend && npm install"
+  },
+  "keywords": [
+    "snake-game",
+    "贪吃蛇",
+    "canvas",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "bore-cli": "^0.1.11"
+  }
+}

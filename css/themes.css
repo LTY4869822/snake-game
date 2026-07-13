@@ -1,0 +1,113 @@
+/* ================================================================
+   themes.css - Dark Neon & Fresh Forest theme definitions
+   ================================================================ */
+
+/* ---------- Dark Neon Theme (default) ---------- */
+[data-theme="dark"] {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #111128;
+  --bg-tertiary: #1a1a35;
+  --panel-bg: rgba(20, 20, 50, 0.75);
+  --panel-bg-solid: #141432;
+
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888aa;
+  --text-muted: #555577;
+
+  --accent-primary: #6c5ce7;
+  --accent-primary-light: #a29bfe;
+  --accent-primary-dark: #4a3db5;
+  --accent-secondary: #00d2ff;
+  --accent-danger: #ff4757;
+  --accent-success: #2ed573;
+  --accent-warning: #ffa502;
+  --accent-special: #ff6b6b;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-strong: rgba(255, 255, 255, 0.15);
+
+  --btn-primary-bg: linear-gradient(135deg, #6c5ce7, #4834d4);
+  --btn-primary-hover: linear-gradient(135deg, #7d6ff0, #5a48e8);
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.12);
+  --btn-secondary-text: #c8c8e0;
+
+  --game-bg: #0d0d24;
+  --grid-color: rgba(108, 92, 231, 0.06);
+  --grid-color-strong: rgba(108, 92, 231, 0.1);
+
+  --snake-head: #a29bfe;
+  --snake-body-start: #6c5ce7;
+  --snake-body-end: #3d3590;
+  --snake-glow: rgba(108, 92, 231, 0.5);
+
+  --food-color: #ff6b6b;
+  --food-glow: rgba(255, 107, 107, 0.5);
+
+  --modal-overlay: rgba(0, 0, 0, 0.6);
+
+  --card-bg: rgba(30, 30, 60, 0.6);
+  --card-hover-bg: rgba(40, 40, 75, 0.8);
+
+  --logo-gradient: linear-gradient(135deg, #a29bfe, #00d2ff, #6c5ce7);
+  --logo-shadow: 0 0 40px rgba(108, 92, 231, 0.3);
+}
+
+/* ---------- Fresh Forest Theme ---------- */
+[data-theme="light"] {
+  --bg-primary: #f5f0e8;
+  --bg-secondary: #ede6d9;
+  --bg-tertiary: #e5dcc8;
+  --panel-bg: rgba(255, 252, 245, 0.8);
+  --panel-bg-solid: #fffcf5;
+
+  --text-primary: #3e3528;
+  --text-secondary: #8a8070;
+  --text-muted: #b8b0a0;
+
+  --accent-primary: #7cb342;
+  --accent-primary-light: #aed581;
+  --accent-primary-dark: #558b2f;
+  --accent-secondary: #4fc3f7;
+  --accent-danger: #e57373;
+  --accent-success: #66bb6a;
+  --accent-warning: #ff8a65;
+  --accent-special: #ff7043;
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-color-strong: rgba(0, 0, 0, 0.15);
+
+  --btn-primary-bg: linear-gradient(135deg, #7cb342, #558b2f);
+  --btn-primary-hover: linear-gradient(135deg, #8bc34a, #689f38);
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: rgba(0, 0, 0, 0.04);
+  --btn-secondary-hover: rgba(0, 0, 0, 0.08);
+  --btn-secondary-text: #5a4f3f;
+
+  --game-bg: #efe8d8;
+  --grid-color: rgba(124, 179, 66, 0.08);
+  --grid-color-strong: rgba(124, 179, 66, 0.12);
+
+  --snake-head: #558b2f;
+  --snake-body-start: #7cb342;
+  --snake-body-end: #aed581;
+  --snake-glow: rgba(124, 179, 66, 0.35);
+
+  --food-color: #ff8a65;
+  --food-glow: rgba(255, 138, 101, 0.4);
+
+  --modal-overlay: rgba(0, 0, 0, 0.3);
+
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-hover-bg: rgba(255, 255, 255, 0.85);
+
+  --logo-gradient: linear-gradient(135deg, #aed581, #4fc3f7, #7cb342);
+  --logo-shadow: 0 0 40px rgba(124, 179, 66, 0.25);
+}
+
+/* ---------- Shared dynamic theming ---------- */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Snake Pro - 贪吃蛇</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body data-theme="dark">
+
+  <!-- ==================== Loading Overlay ==================== -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner">
+      <svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4"/></svg>
+    </div>
+    <p class="loading-text">Loading...</p>
+  </div>
+
+  <!-- ==================== APP SHELL ==================== -->
+  <div id="app-shell">
+
+    <!-- ===== Sidebar ===== -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-brand">
+        <canvas id="logo-canvas" width="48" height="48"></canvas>
+        <div class="sidebar-brand-text">
+          <span class="sidebar-logo">SNAKE PRO</span>
+          <span class="sidebar-ver">v1.0</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-link active" data-nav="dashboard">
+          <span class="nav-icon">🏠</span><span>首页</span>
+        </button>
+        <button class="sidebar-link" data-nav="mode-select">
+          <span class="nav-icon">🎮</span><span>开始游戏</span>
+        </button>
+        <button class="sidebar-link" data-nav="leaderboard">
+          <span class="nav-icon">🏆</span><span>排行榜</span>
+        </button>
+        <button class="sidebar-link" data-nav="shop">
+          <span class="nav-icon">🎨</span><span>皮肤商店</span>
+        </button>
+        <button class="sidebar-link" data-nav="achievements">
+          <span class="nav-icon">🎯</span><span>成就系统</span>
+        </button>
+        <button class="sidebar-link" data-nav="settings">
+          <span class="nav-icon">⚙</span><span>游戏设置</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-link" id="sidebar-theme-btn">
+          <span class="nav-icon">🌙</span><span>暗夜霓虹</span>
+        </button>
+        <div class="sidebar-user" id="sidebar-user">
+          <div class="user-avatar">🐍</div>
+          <div class="user-info">
+            <span class="user-name" id="sidebar-username">游客玩家</span>
+            <span class="user-status">离线模式</span>
+          </div>
+        </div>
+        <button class="sidebar-link" id="sidebar-login-btn" data-nav="auth">
+          <span class="nav-icon">🔑</span><span>登录 / 注册</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== Main Content Area ===== -->
+    <main id="main-area">
+
+      <!-- ===== Dashboard (Home) ===== -->
+      <section id="section-dashboard" class="content-section active">
+        <div class="page-header">
+          <h1 class="page-title">👋 欢迎回来，<span id="dash-username">玩家</span></h1>
+          <p class="page-subtitle">准备好创造新的记录了吗？</p>
+        </div>
+
+        <!-- Stats Cards Row -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon">👑</div>
+            <div class="stat-card-body">
+              <span class="stat-card-value" id="dash-highscore">0</span>
+              <span class="stat-card-label">历史最高分</span>
+            </div>
+            <div class="stat-card-glow"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🎮</div>
+            <div class="stat-card-body">
+              <span class="stat-card-value" id="dash-games">0</span>
+              <span class="stat-card-label">总游戏场次</span>
+            </div>
+            <div class="stat-card-glow"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🪙</div>
+            <div class="stat-card-body">
+              <span class="stat-card-value" id="dash-coins">0</span>
+              <span class="stat-card-label">金币余额</span>
+            </div>
+            <div class="stat-card-glow"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">⏱</div>
+            <div class="stat-card-body">
+              <span class="stat-card-value" id="dash-playtime">0h</span>
+              <span class="stat-card-label">总游戏时长</span>
+            </div>
+            <div class="stat-card-glow"></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="action-card action-primary" data-nav="mode-select">
+            <span class="action-icon">🎮</span>
+            <div class="action-body">
+              <span class="action-title">开始游戏</span>
+              <span class="action-desc">选择模式，即刻开战</span>
+            </div>
+            <span class="action-arrow">→</span>
+          </button>
+          <div class="action-row">
+            <button class="action-card action-secondary" data-nav="leaderboard">
+              <span class="action-icon">🏆</span>
+              <span class="action-text">排行榜</span>
+            </button>
+            <button class="action-card action-secondary" data-nav="shop">
+              <span class="action-icon">🎨</span>
+              <span class="action-text">皮肤商店</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Games + Achievement Progress -->
+        <div class="bottom-grid">
+          <div class="panel-card" id="recent-games-panel">
+            <h3 class="panel-title">📋 最近战绩</h3>
+            <div class="recent-list" id="recent-games-list">
+              <p class="empty-hint">还没有游戏记录，快来一局吧！</p>
+            </div>
+          </div>
+          <div class="panel-card" id="ach-preview-panel">
+            <h3 class="panel-title">🎯 成就进度</h3>
+            <div class="ach-mini-progress">
+              <div class="ach-mini-bar"><div class="ach-mini-fill" id="ach-mini-fill"></div></div>
+              <span class="ach-mini-text" id="ach-mini-text">0 / 25</span>
+            </div>
+            <div class="ach-mini-icons" id="ach-mini-icons"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Mode Select ===== -->
+      <section id="section-mode-select" class="content-section">
+        <div class="page-header">
+          <h1 class="page-title">🎮 选择游戏模式</h1>
+          <p class="page-subtitle">五种模式，五种挑战</p>
+        </div>
+        <div class="mode-cards">
+          <div class="mode-card" data-mode="classic">
+            <div class="mode-card-icon">🐍</div>
+            <div class="mode-card-info">
+              <h3>经典模式</h3>
+              <p>无时间限制，撞墙/撞自身即死亡，冲击最高分</p>
+            </div>
+            <span class="mode-badge">经典</span>
+          </div>
+          <div class="mode-card" data-mode="timed">
+            <div class="mode-card-icon">⏱</div>
+            <div class="mode-card-info">
+              <h3>限时模式</h3>
+              <p>限定时间内比拼得分，死亡可复活1次</p>
+            </div>
+            <div class="mode-time-btns">
+              <button class="time-btn" data-time="180">3分钟</button>
+              <button class="time-btn active" data-time="300">5分钟</button>
+            </div>
+          </div>
+          <div class="mode-card" data-mode="obstacle">
+            <div class="mode-card-icon">🧱</div>
+            <div class="mode-card-info">
+              <h3>障碍模式</h3>
+              <p>随机障碍物，撞到即死，难度随关卡递增</p>
+            </div>
+            <span class="mode-badge warning">挑战</span>
+          </div>
+          <div class="mode-card" data-mode="wallpass">
+            <div class="mode-card-icon">🌀</div>
+            <div class="mode-card-info">
+              <h3>穿墙模式</h3>
+              <p>边界可穿越，仅撞自身死亡</p>
+            </div>
+            <span class="mode-badge accent">技巧</span>
+          </div>
+          <div class="mode-card" data-mode="endless">
+            <div class="mode-card-icon">🛡</div>
+            <div class="mode-card-info">
+              <h3>无尽模式</h3>
+              <p>自带护盾，撞障碍扣盾缩身，护盾可补充</p>
+            </div>
+            <span class="mode-badge special">无尽</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Leaderboard ===== -->
+      <section id="section-leaderboard" class="content-section">
+        <div class="page-header">
+          <h1 class="page-title">🏆 排行榜</h1>
+          <p class="page-subtitle">与全球玩家一较高下</p>
+        </div>
+        <div class="lb-tabs">
+          <button class="lb-tab active" data-lb-tab="local">🏠 本地</button>
+          <button class="lb-tab" data-lb-tab="global">🌐 全球</button>
+        </div>
+        <div class="lb-mode-filter">
+          <button class="chip active" data-lb-mode="classic">经典</button>
+          <button class="chip" data-lb-mode="timed">限时</button>
+          <button class="chip" data-lb-mode="obstacle">障碍</button>
+          <button class="chip" data-lb-mode="wallpass">穿墙</button>
+          <button class="chip" data-lb-mode="endless">无尽</button>
+        </div>
+        <div class="lb-list" id="lb-list">
+          <p class="empty-hint">暂无排行数据</p>
+        </div>
+        <div class="lb-pagination" id="lb-pagination"></div>
+      </section>
+
+      <!-- ===== Shop ===== -->
+      <section id="section-shop" class="content-section">
+        <div class="page-header">
+          <h1 class="page-title">🎨 皮肤商店</h1>
+          <div class="shop-coins-header">
+            <span class="coins-badge">🪙 <strong id="shop-coins-display">0</strong></span>
+          </div>
+        </div>
+        <div class="shop-grid" id="shop-grid"></div>
+      </section>
+
+      <!-- ===== Achievements ===== -->
+      <section id="section-achievements" class="content-section">
+        <div class="page-header">
+          <h1 class="page-title">🎯 成就系统</h1>
+        </div>
+        <div class="ach-overview">
+          <div class="ach-progress-ring">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke-width="8" stroke="var(--bg-tertiary)"/><circle cx="50" cy="50" r="42" fill="none" stroke-width="8" stroke="var(--accent-primary)" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round" id="ach-ring"/></svg>
+            <span class="ach-ring-text" id="ach-ring-text">0/25</span>
+          </div>
+          <div class="ach-overview-info">
+            <h3 id="ach-count-text">0 项已解锁</h3>
+            <p>完成成就获得金币与限定皮肤奖励</p>
+          </div>
+        </div>
+        <div class="ach-grid" id="ach-grid"></div>
+      </section>
+
+      <!-- ===== Settings ===== -->
+      <section id="section-settings" class="content-section">
+        <div class="page-header">
+          <h1 class="page-title">⚙ 游戏设置</h1>
+        </div>
+        <div class="settings-cards">
+          <div class="setting-card">
+            <span class="setting-icon">🌓</span>
+            <span class="setting-label">主题切换</span>
+            <button class="btn btn-sm btn-outline" id="setting-theme-btn">暗夜霓虹</button>
+          </div>
+          <div class="setting-card">
+            <span class="setting-icon">🔊</span>
+            <span class="setting-label">音效音量</span>
+            <input type="range" class="setting-slider" id="setting-sfx-volume" min="0" max="100" value="70">
+          </div>
+          <div class="setting-card">
+            <span class="setting-icon">🎵</span>
+            <span class="setting-label">背景音乐</span>
+            <input type="range" class="setting-slider" id="setting-bgm-volume" min="0" max="100" value="40">
+          </div>
+          <div class="setting-card">
+            <span class="setting-icon">⌨</span>
+            <span class="setting-label">键盘操作</span>
+            <div class="toggle-group">
+              <button class="chip active" data-ctrl="wasd">WASD</button>
+              <button class="chip" data-ctrl="arrows">方向键</button>
+            </div>
+          </div>
+          <div class="setting-card">
+            <span class="setting-icon">📱</span>
+            <span class="setting-label">移动端操作</span>
+            <div class="toggle-group">
+              <button class="chip active" data-mobile-ctrl="swipe">滑动</button>
+              <button class="chip" data-mobile-ctrl="dpad">按键</button>
+            </div>
+          </div>
+          <div class="setting-card">
+            <span class="setting-icon">📊</span>
+            <span class="setting-label">初始难度</span>
+            <div class="toggle-group">
+              <button class="chip" data-diff="easy">简单</button>
+              <button class="chip active" data-diff="normal">普通</button>
+              <button class="chip" data-diff="hard">困难</button>
+            </div>
+          </div>
+          <div class="setting-card">
+            <span class="setting-icon">☁</span>
+            <span class="setting-label">数据同步</span>
+            <button class="btn btn-sm btn-primary" id="btn-sync-data">同步云端数据</button>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-full" id="btn-reset-data" style="margin-top:20px">⚠ 重置所有本地数据</button>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== Game Screen (fullscreen overlay) ==================== -->
+  <section id="screen-game" class="screen">
+    <div class="game-top-bar">
+      <button class="btn btn-icon game-bar-btn" id="btn-game-pause" title="暂停">⏸</button>
+      <div class="game-stat">
+        <span class="game-stat-label">分数</span>
+        <span class="game-stat-value" id="hud-score">0</span>
+      </div>
+      <div class="game-stat">
+        <span class="game-stat-label">长度</span>
+        <span class="game-stat-value" id="hud-length">3</span>
+      </div>
+      <div class="game-stat" id="hud-timer-container" style="display:none">
+        <span class="game-stat-label">时间</span>
+        <span class="game-stat-value" id="hud-timer">300</span>
+      </div>
+      <div class="game-stat" id="hud-speed-container">
+        <span class="game-stat-label">速度</span>
+        <span class="game-stat-value" id="hud-speed">⚡</span>
+      </div>
+      <div class="game-stat" id="hud-obstacle-container" style="display:none">
+        <span class="game-stat-label">关卡</span>
+        <span class="game-stat-value" id="hud-obstacle-level">1</span>
+      </div>
+      <button class="btn btn-icon game-bar-btn" id="btn-game-sound" title="音效">🔊</button>
+    </div>
+    <div class="game-canvas-wrapper">
+      <canvas id="game-canvas"></canvas>
+      <div class="game-pause-overlay" id="game-pause-overlay">
+        <div class="pause-content">
+          <h2 class="pause-title">游戏暂停</h2>
+          <button class="btn btn-primary" id="btn-game-resume">继续游戏</button>
+          <button class="btn btn-secondary" id="btn-game-restart">重新开始</button>
+          <button class="btn btn-text" id="btn-game-quit">返回主菜单</button>
+        </div>
+      </div>
+    </div>
+    <div class="game-active-items" id="game-active-items"></div>
+    <div class="mobile-controls" id="mobile-controls">
+      <div class="dpad">
+        <button class="dpad-btn dpad-up" data-dir="up">▲</button>
+        <button class="dpad-btn dpad-left" data-dir="left">◀</button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn dpad-right" data-dir="right">▶</button>
+        <button class="dpad-btn dpad-down" data-dir="down">▼</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Game Over Modal ==================== -->
+  <div class="modal-overlay" id="modal-gameover">
+    <div class="modal-panel gameover-panel">
+      <h2 class="gameover-title" id="gameover-title">游戏结束</h2>
+      <div class="gameover-stats">
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">本局得分</span>
+          <span class="gameover-stat-value" id="go-score">0</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">最终长度</span>
+          <span class="gameover-stat-value" id="go-length">3</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">游戏时长</span>
+          <span class="gameover-stat-value" id="go-duration">0s</span>
+        </div>
+        <div class="gameover-stat-row highlight" id="go-record-row" style="display:none">
+          <span class="gameover-stat-label">🎉 新记录!</span>
+          <span class="gameover-stat-value" id="go-record"></span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">获得金币</span>
+          <span class="gameover-stat-value coins" id="go-coins">+0</span>
+        </div>
+      </div>
+      <canvas id="go-chart" width="280" height="120" class="gameover-chart"></canvas>
+      <div class="gameover-buttons">
+        <button class="btn btn-primary" id="btn-play-again">再来一局</button>
+        <button class="btn btn-secondary" id="btn-back-to-menu">返回主页</button>
+        <button class="btn btn-text" id="btn-share-score">📤 分享成绩</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Auth Modal ==================== -->
+  <div class="modal-overlay" id="modal-auth">
+    <div class="modal-panel auth-panel">
+      <button class="modal-close" data-close="modal-auth">✕</button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">登录</button>
+        <button class="auth-tab" data-tab="register">注册</button>
+      </div>
+      <form class="auth-form" id="auth-form">
+        <div class="form-group">
+          <label class="form-label">用户名</label>
+          <input type="text" class="form-input" id="auth-username" placeholder="请输入用户名" maxlength="20" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" class="form-input" id="auth-password" placeholder="请输入密码" minlength="6" required>
+        </div>
+        <p class="form-error" id="auth-error"></p>
+        <button type="submit" class="btn btn-primary btn-full" id="auth-submit-btn">登录</button>
+        <p class="form-hint" id="auth-hint">还没有账号？点击注册</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== Toast ==================== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ==================== Scripts ==================== -->
+  <script src="js/config.js"></script>
+  <script src="js/storage/StorageManager.js"></script>
+  <script src="js/network/ApiClient.js"></script>
+  <script src="js/audio/AudioManager.js"></script>
+  <script src="js/game/Snake.js"></script>
+  <script src="js/game/FoodManager.js"></script>
+  <script src="js/game/ParticleSystem.js"></script>
+  <script src="js/game/GameModes.js"></script>
+  <script src="js/game/Renderer.js"></script>
+  <script src="js/game/InputManager.js"></script>
+  <script src="js/game/GameEngine.js"></script>
+  <script src="js/ui/ScreenManager.js"></script>
+  <script src="js/ui/MenuScreen.js"></script>
+  <script src="js/ui/GameScreen.js"></script>
+  <script src="js/ui/GameOverModal.js"></script>
+  <script src="js/ui/LeaderboardScreen.js"></script>
+  <script src="js/ui/ShopScreen.js"></script>
+  <script src="js/ui/AchievementScreen.js"></script>
+  <script src="js/ui/SettingsScreen.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
