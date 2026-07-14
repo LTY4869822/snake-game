@@ -165,7 +165,6 @@ class GameScreen {
     }
 
     // Replace canvas with a fresh one to guarantee clean WebGL context
-    const wrapper = document.querySelector('.game-canvas-wrapper');
     const oldCanvas = this.canvas;
     const newCanvas = document.createElement('canvas');
     newCanvas.id = 'game-canvas';
@@ -175,7 +174,6 @@ class GameScreen {
     this.canvas = newCanvas;
 
     // Create fresh renderer on brand new canvas
-    const bgTheme = settings.bgTheme || 'nebula';
     this.sharedRenderer = new PixiRenderer(this.canvas, bgTheme);
 
     // Create engine
