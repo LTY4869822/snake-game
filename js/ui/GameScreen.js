@@ -170,6 +170,9 @@ class GameScreen {
     newCanvas.id = 'game-canvas';
     if (oldCanvas && oldCanvas.parentNode) {
       oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
+    } else {
+      // Fallback: old canvas was removed from DOM, append new one
+      if (wrapper) wrapper.appendChild(newCanvas);
     }
     this.canvas = newCanvas;
 

@@ -1440,7 +1440,7 @@ class PixiRenderer {
    */
   destroy() {
     if (this.renderer) {
-      this.renderer.destroy(true);
+      this.renderer.destroy(false); // Don't remove canvas from DOM
       this.renderer = null;
     }
     this.stage = null;
