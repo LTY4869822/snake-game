@@ -31,10 +31,14 @@ class GameOverModal {
     // Back to menu button
     document.getElementById('btn-back-to-menu').addEventListener('click', () => {
       this.screenManager.closeModal('gameover');
-      // Restore sidebar and go to dashboard
-      document.getElementById('screen-game').classList.remove('active');
-      document.getElementById('app-shell').style.display = 'flex';
-      this.screenManager.navigateTo('dashboard');
+      // Use proper quit flow to clean up all game state (body bg, renderer, etc.)
+      if (typeof AppState !== 'undefined' && AppState.gameScreen) {
+        AppState.gameScreen._quitGame();
+      } else {
+        document.getElementById('screen-game').classList.remove('active');
+        document.getElementById('app-shell').style.display = 'flex';
+        this.screenManager.navigateTo('dashboard');
+      }
     });
 
     // Share button

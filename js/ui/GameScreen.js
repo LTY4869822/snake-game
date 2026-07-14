@@ -230,6 +230,8 @@ class GameScreen {
     const wrapper = document.querySelector('.game-canvas-wrapper');
     if (wrapper) { wrapper.style.background = ''; wrapper.style.backgroundColor = ''; }
     document.getElementById('game-pause-overlay').classList.remove('active');
+    // Close gameover modal if open
+    this.screenManager.closeModal('gameover');
     document.getElementById('app-shell').style.display = 'flex';
     // Destroy shared renderer when leaving game screen entirely
     if (this.sharedRenderer) {
