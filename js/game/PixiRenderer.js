@@ -681,13 +681,13 @@ class PixiRenderer {
     const vpX = w / 2, vpY = h * 0.4;
 
     // Perspective grid lines (converging to vanishing point)
-    // Horizontal lines
+    // Horizontal lines - subtle so snake remains clearly visible
     for (let i = 0; i < 30; i++) {
       const t = 0.05 + (i / 30) * 1.2;
       const y = vpY + (h - vpY) * Math.pow(t, 1.5);
       if (y > h) break;
-      const alpha = 0.04 + (1 - t) * 0.12;
-      const lineW = 0.5 + (1 - t) * 1.5;
+      const alpha = 0.02 + (1 - t) * 0.05;
+      const lineW = 0.3 + (1 - t) * 0.8;
       g.lineStyle(lineW, 0xff00ff, alpha);
       g.moveTo(0, y);
       g.lineTo(w, y);
@@ -699,34 +699,27 @@ class PixiRenderer {
       const angle = (Math.PI / 2) + (i / 15) * (Math.PI * 0.38);
       const endX = vpX + Math.cos(angle) * w * 1.5;
       const endY = vpY + Math.sin(angle) * h * 1.2;
-      const alpha = 0.02 + Math.abs(i / 15) * 0.08;
-      g.lineStyle(0.5, 0x00ffff, alpha);
+      const alpha = 0.01 + Math.abs(i / 15) * 0.04;
+      g.lineStyle(0.3, 0x00ffff, alpha);
       g.moveTo(vpX, vpY);
       g.lineTo(endX, endY);
       g.lineStyle(0);
     }
 
-    // Neon glow at vanishing point
-    for (let j = 4; j >= 0; j--) {
-      g.beginFill(0xff00ff, 0.03 * (5 - j));
+    // Neon glow at vanishing point (subtle)
+    for (let j = 3; j >= 0; j--) {
+      g.beginFill(0xff00ff, 0.02 * (4 - j));
       g.drawCircle(vpX, vpY, 10 + j * 15);
       g.endFill();
     }
 
-    // Scan lines (horizontal thin lines across entire surface)
-    for (let y = 0; y < h; y += 3) {
-      g.beginFill(0x000000, 0.03);
-      g.drawRect(0, y, w, 1);
-      g.endFill();
-    }
-
-    // Random neon glitch rectangles
-    for (let i = 0; i < 8; i++) {
+    // Random neon glitch rectangles (fewer, more subtle)
+    for (let i = 0; i < 4; i++) {
       const gx = Math.random() * w;
       const gy = Math.random() * h * 0.6;
       const gw = 20 + Math.random() * 80;
-      const gh = 1 + Math.random() * 3;
-      const gAlpha = 0.05 + Math.random() * 0.15;
+      const gh = 1 + Math.random() * 2;
+      const gAlpha = 0.03 + Math.random() * 0.06;
       const gColor = Math.random() < 0.5 ? 0xff00ff : 0x00ffff;
       g.beginFill(gColor, gAlpha);
       g.drawRect(gx, gy, gw, gh);
@@ -744,11 +737,11 @@ class PixiRenderer {
     }
     g.endFill();
 
-    // Window dots on buildings
-    for (let i = 0; i < 60; i++) {
+    // Window dots on buildings (subtle)
+    for (let i = 0; i < 40; i++) {
       const wx = Math.random() * w;
       const wy = h - 10 - Math.random() * 70;
-      const wAlpha = 0.1 + Math.random() * 0.4;
+      const wAlpha = 0.05 + Math.random() * 0.15;
       const wColor = Math.random() < 0.3 ? 0xff00ff : (Math.random() < 0.5 ? 0x00ffff : 0xffff00);
       g.beginFill(wColor, wAlpha);
       g.drawRect(wx, wy, 2, 2);
