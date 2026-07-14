@@ -38,6 +38,7 @@ class SettingsScreen {
     // SFX volume
     document.getElementById('setting-sfx-volume')?.addEventListener('input', function() {
       const s = StorageManager.getSettings(); s.sfxVolume = parseInt(this.value);
+      s.soundEnabled = s.sfxVolume > 0;
       StorageManager.saveSettings(s);
       if (AudioManager.instance) AudioManager.instance.setSfxVolume(s.sfxVolume / 100);
     });
@@ -45,6 +46,7 @@ class SettingsScreen {
     // BGM volume
     document.getElementById('setting-bgm-volume')?.addEventListener('input', function() {
       const s = StorageManager.getSettings(); s.bgmVolume = parseInt(this.value);
+      s.musicEnabled = s.bgmVolume > 0;
       StorageManager.saveSettings(s);
       if (AudioManager.instance) AudioManager.instance.setBgmVolume(s.bgmVolume / 100);
     });
@@ -97,11 +99,24 @@ class SettingsScreen {
     const themeBtn = document.getElementById('setting-theme-btn');
     const names = { dark: '暗夜霓虹', light: '清新森系', cyberpunk: '赛博朋克' };
     if (themeBtn) themeBtn.textContent = names[s.theme] || '暗夜霓虹';
-    const sfx = document.getElementById('setting-sfx-volume'); if (sfx) sfx.value = s.sfxVolume || 70;
-    const bgm = document.getElementById('setting-bgm-volume'); if (bgm) bgm.value = s.bgmVolume || 40;
+    const sfx = document.getElementById('setting-sfx-volume'); if (sfx) sfx.value = s.sfxVolume != null ? s.sfxVolume : 70;
+    const bgm = document.getElementById('setting-bgm-volume'); if (bgm) bgm.value = s.bgmVolume != null ? s.bgmVolume : 40;
     document.querySelectorAll('[data-ctrl]').forEach(b => b.classList.toggle('active', b.dataset.ctrl === (s.controlScheme || 'wasd')));
     document.querySelectorAll('[data-mobile-ctrl]').forEach(b => b.classList.toggle('active', b.dataset.mobileCtrl === (s.mobileControl || 'swipe')));
     document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b.dataset.diff === (s.difficulty || 'normal')));
+
+    // Sync audio volumes to AudioManager if initialized
+    const am = AudioManager.instance;
+    if (am && am.initialized) {
+      am.setSfxVolume((s.sfxVolume != null ? s.sfxVolume : 70) / 100);
+      am.setBgmVolume((s.bgmVolume != null ? s.bgmVolume : 40) / 100);
+      if (s.soundEnabled !== undefined) {
+        am.sfxEnabled = s.soundEnabled;
+      }
+      if (s.musicEnabled !== undefined) {
+        am.bgmEnabled = s.musicEnabled;
+      }
+    }
   }
 
   async _syncData() {

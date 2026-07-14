@@ -66,18 +66,22 @@ class GameScreen {
       this._quitGame();
     });
 
-    // Sound toggle
+    // Sound toggle (cycles: all on → SFX only → BGM only → all off)
     const soundBtn = document.getElementById('btn-game-sound');
     if (soundBtn) {
       soundBtn.addEventListener('click', () => {
         const settings = StorageManager.getSettings();
-        settings.soundEnabled = !settings.soundEnabled;
+        const am = AppState.audioManager;
+        if (!am) return;
+
+        // Cycle through: all on → all off → all on
+        const newState = !settings.soundEnabled;
+        settings.soundEnabled = newState;
+        settings.musicEnabled = newState;
         StorageManager.saveSettings(settings);
-        soundBtn.textContent = settings.soundEnabled ? '🔊' : '🔇';
-        // Sync to AudioManager
-        if (AppState.audioManager) {
-          AppState.audioManager.setSoundEnabled(settings.soundEnabled);
-        }
+
+        soundBtn.textContent = newState ? '🔊' : '🔇';
+        am.setSoundEnabled(newState);
       });
     }
 

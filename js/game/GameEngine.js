@@ -25,7 +25,7 @@ class GameEngine {
     this.hooks = hooks;
 
     // Core subsystems
-    this.renderer = new Renderer(canvas);
+    this.renderer = new PixiRenderer(canvas);
     this.particles = new ParticleSystem();
     this.snake = null;
     this.foodManager = null;
@@ -176,6 +176,9 @@ class GameEngine {
     this.lastFrameTime = performance.now();
     this.animFrameId = requestAnimationFrame(this._loop);
 
+    // Play start sound
+    this._audio('start');
+
     // Emit initial state
     if (this.hooks.onScoreUpdate) {
       this.hooks.onScoreUpdate(0, this.snake.length, 0);
@@ -303,6 +306,7 @@ class GameEngine {
         this.shieldCount--;
         this.snake.alive = true;
         this.snake.shrink(3);
+        this._audio('shieldBreak');
         if (this.hooks.onScoreUpdate) {
           this.hooks.onScoreUpdate(this.score, this.snake.length, this.foodEaten);
         }
@@ -311,6 +315,7 @@ class GameEngine {
       if (this.foodManager.consumeShield()) {
         this.snake.alive = true;
         this.snake.shrink(3);
+        this._audio('shieldBreak');
         this.particles.emit('item', this.snake.head.x * this.renderer.cellSize + this.renderer.cellSize / 2,
           this.snake.head.y * this.renderer.cellSize + this.renderer.cellSize / 2,
           { color: '#7c4dff' });
@@ -336,8 +341,10 @@ class GameEngine {
         if (this.shieldCount > 0) {
           this.shieldCount--;
           this.snake.shrink(3);
+          this._audio('shieldBreak');
         } else if (this.foodManager.consumeShield()) {
           this.snake.shrink(3);
+          this._audio('shieldBreak');
         } else if (this.respawnsLeft > 0) {
           this.respawnsLeft--;
           this._respawn();
@@ -476,7 +483,11 @@ class GameEngine {
     const range = diff.initialSpeed - diff.minSpeed;
     const current = this.tickInterval - diff.minSpeed;
     const ratio = range > 0 ? 1 - (current / range) : 0;
+    const prevLevel = this.speedLevel;
     this.speedLevel = Math.min(this.maxSpeedLevel, 1 + Math.floor(ratio * this.maxSpeedLevel));
+    if (this.speedLevel > prevLevel) {
+      this._audio('speedUp', { level: this.speedLevel });
+    }
   }
 
   /**
@@ -616,6 +627,12 @@ class GameEngine {
         case 'item': am.playItem(); break;
         case 'death': am.playDeath(); break;
         case 'combo': am.playCombo(opts?.level || 1); break;
+        case 'start': am.playStart(); break;
+        case 'pause': am.playPause(); break;
+        case 'resume': am.playResume(); break;
+        case 'shieldBreak': am.playShieldBreak(); break;
+        case 'speedUp': am.playSpeedUp(opts?.level || 1); break;
+        case 'achievement': am.playAchievement(); break;
       }
     } catch(e) {}
   }
@@ -635,9 +652,11 @@ class GameEngine {
   togglePause() {
     if (this.state === 'playing') {
       this.state = 'paused';
+      this._audio('pause');
     } else if (this.state === 'paused') {
       this.state = 'playing';
       this.lastFrameTime = performance.now();
+      this._audio('resume');
     }
     return this.state;
   }
@@ -664,6 +683,10 @@ class GameEngine {
     if (this.inputManager) {
       this.inputManager.destroy();
       this.inputManager = null;
+    }
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
     }
   }
 
@@ -762,6 +785,9 @@ class GameEngine {
 
     // If any newly unlocked
     if (newlyUnlocked.length > 0) {
+      // Play achievement sound
+      this._audio('achievement');
+
       // Save achievements
       achData.unlocked = [...unlocked].map(id => ({ id, unlockedAt: new Date().toISOString() }));
       StorageManager.saveAchievementData(achData);

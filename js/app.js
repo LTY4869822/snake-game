@@ -166,6 +166,27 @@
 
     // Audio is now fully integrated in GameEngine (eat/item/death/combo/BGM)
 
+    // ---- Global UI Sounds (click & hover) ----
+    document.addEventListener('click', (e) => {
+      if (!AppState.audioManager || !AppState.audioManager.initialized) return;
+      // Play click sound on buttons and interactive elements
+      const target = e.target.closest('button, .mode-card, .action-card, .sidebar-link, .lb-tab, .chip, .auth-tab, .time-btn, .shop-item');
+      if (target) {
+        AppState.audioManager.playClick();
+      }
+    });
+
+    // Hover sound (debounced to avoid spam)
+    let _hoverTimer = null;
+    document.addEventListener('mouseover', (e) => {
+      if (!AppState.audioManager || !AppState.audioManager.initialized) return;
+      const target = e.target.closest('button, .mode-card, .action-card, .sidebar-link, .lb-tab, .chip, .auth-tab, .time-btn, .shop-item');
+      if (target && !_hoverTimer) {
+        _hoverTimer = setTimeout(() => { _hoverTimer = null; }, 80);
+        AppState.audioManager.playHover();
+      }
+    });
+
     // Hide loading, navigate to dashboard
     document.getElementById('loading-overlay').classList.add('hidden');
     stopLoadingAnimation();
