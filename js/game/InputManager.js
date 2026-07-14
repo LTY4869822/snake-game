@@ -2,11 +2,14 @@
  * InputManager - Unified input handling for keyboard, touch, and swipe
  *
  * Supports:
- * - Keyboard: WASD and Arrow keys (configurable)
+ * - Keyboard: WASD and Arrow keys (configurable) + R/Space/Esc shortcuts
  * - Touch: Virtual D-pad buttons
  * - Swipe: Touch swipe gestures on the canvas
+ * - Direction queue for input buffering (prevents lost fast inputs)
  * - All inputs normalized to direction vectors {x, y}
  */
+'use strict';
+
 class InputManager {
   /**
    * @param {object} options - Configuration
@@ -14,6 +17,8 @@ class InputManager {
    * @param {string} options.mobileControl - 'swipe' or 'dpad'
    * @param {function} options.onDirection - Callback(dx, dy) when direction changes
    * @param {function} options.onPause - Callback() when pause requested
+   * @param {function} [options.onRestart] - Callback() when restart requested
+   * @param {function} [options.onQuit] - Callback() when quit requested
    * @param {HTMLElement} options.canvasElement - Canvas for swipe detection
    */
   constructor(options = {}) {
@@ -21,6 +26,8 @@ class InputManager {
     this.mobileControl = options.mobileControl || 'swipe';
     this.onDirection = options.onDirection || (() => {});
     this.onPause = options.onPause || (() => {});
+    this.onRestart = options.onRestart || null;
+    this.onQuit = options.onQuit || null;
     this.canvasElement = options.canvasElement || null;
 
     // Swipe tracking
@@ -30,15 +37,20 @@ class InputManager {
     this.swipeThreshold = 30;     // Minimum px for swipe
     this.swipeTimeThreshold = 500; // Maximum ms for swipe
 
-    // Direction queue to prevent losing fast inputs
+    // Direction queue to buffer rapid inputs
     this.directionQueue = [];
     this.maxQueueSize = 3;
 
-    // Bound handlers for cleanup
+    // Bound handlers for cleanup (all named, no anonymous leaks)
     this._keyHandler = this._handleKey.bind(this);
     this._touchStartHandler = this._handleTouchStart.bind(this);
     this._touchEndHandler = this._handleTouchEnd.bind(this);
     this._dpadHandler = this._handleDpad.bind(this);
+    this._dpadTouchHandler = this._handleDpadTouch.bind(this);
+    this._resizeHandler = this._updateMobileControls.bind(this);
+
+    // Track D-pad buttons for cleanup
+    this._dpadButtons = [];
 
     this._setup();
   }
@@ -57,19 +69,41 @@ class InputManager {
       this.canvasElement.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
     }
 
-    // Virtual D-pad buttons
-    document.querySelectorAll('.dpad-btn').forEach(btn => {
+    // Virtual D-pad buttons - use named handlers for clean removal
+    this._dpadButtons = document.querySelectorAll('.dpad-btn');
+    this._dpadButtons.forEach(btn => {
       btn.addEventListener('pointerdown', this._dpadHandler);
-      // Prevent the d-pad from triggering blur/focus
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        this._dpadHandler(e);
-      });
+      btn.addEventListener('touchstart', this._dpadTouchHandler);
     });
 
     // Detect if device has touch capability
     this._updateMobileControls();
-    window.addEventListener('resize', () => this._updateMobileControls());
+    window.addEventListener('resize', this._resizeHandler);
+  }
+
+  /**
+   * Enqueue a direction for processing (prevents fast input loss)
+   */
+  enqueueDirection(dx, dy) {
+    if (this.directionQueue.length >= this.maxQueueSize) return;
+    // Prevent duplicate consecutive directions
+    const last = this.directionQueue[this.directionQueue.length - 1];
+    if (last && last.dx === dx && last.dy === dy) return;
+    this.directionQueue.push({ dx, dy });
+  }
+
+  /**
+   * Dequeue next direction; returns null if queue is empty
+   */
+  dequeueDirection() {
+    return this.directionQueue.shift() || null;
+  }
+
+  /**
+   * Clear the direction queue
+   */
+  clearQueue() {
+    this.directionQueue.length = 0;
   }
 
   /**
@@ -111,6 +145,24 @@ class InputManager {
   _handleKey(e) {
     let dx = 0, dy = 0;
 
+    // Global shortcuts
+    switch (e.key) {
+      case 'Escape':
+        if (this.onQuit) { this.onQuit(); e.preventDefault(); return; }
+        this.onPause();
+        e.preventDefault();
+        return;
+      case 'p':
+      case ' ':
+        this.onPause();
+        e.preventDefault();
+        return;
+      case 'r':
+      case 'R':
+        if (this.onRestart) { this.onRestart(); e.preventDefault(); return; }
+        break;
+    }
+
     // WASD
     if (this.controlScheme === 'wasd') {
       switch (e.key.toLowerCase()) {
@@ -127,15 +179,12 @@ class InputManager {
       case 'ArrowDown': dy = 1; break;
       case 'ArrowLeft': dx = -1; break;
       case 'ArrowRight': dx = 1; break;
-      case 'Escape':
-      case 'p':
-        this.onPause();
-        e.preventDefault();
-        return;
     }
 
     if (dx !== 0 || dy !== 0) {
       e.preventDefault();
+      // Use direction queue to buffer fast inputs
+      this.enqueueDirection(dx, dy);
       this.onDirection(dx, dy);
     }
   }
@@ -191,18 +240,31 @@ class InputManager {
   }
 
   /**
-   * Clean up all event listeners
+   * Handle D-pad touchstart (prevents default, delegates to dpad handler)
+   */
+  _handleDpadTouch(e) {
+    e.preventDefault();
+    this._dpadHandler(e);
+  }
+
+  /**
+   * Clean up all event listeners (no leaks)
    */
   destroy() {
     window.removeEventListener('keydown', this._keyHandler);
+    window.removeEventListener('resize', this._resizeHandler);
 
     if (this.canvasElement) {
       this.canvasElement.removeEventListener('touchstart', this._touchStartHandler);
       this.canvasElement.removeEventListener('touchend', this._touchEndHandler);
     }
 
-    document.querySelectorAll('.dpad-btn').forEach(btn => {
+    // Cleanly remove D-pad listeners using tracked references
+    this._dpadButtons.forEach(btn => {
       btn.removeEventListener('pointerdown', this._dpadHandler);
+      btn.removeEventListener('touchstart', this._dpadTouchHandler);
     });
+    this._dpadButtons = [];
+    this.directionQueue.length = 0;
   }
 }

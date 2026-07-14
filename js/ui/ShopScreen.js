@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ShopScreen - Skin store with preview, purchase, and equip functionality
  *

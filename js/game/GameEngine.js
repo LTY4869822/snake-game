@@ -5,10 +5,12 @@
  * Uses requestAnimationFrame for rendering and a fixed-timestep accumulator
  * for game logic ticks.
  *
- * State machine: ready → playing → paused ↔ playing → dead → (game over)
+ * State machine: countdown → playing → paused ↔ playing → dead → (game over)
  *
  * Emits events to the UI layer via callback hooks.
  */
+'use strict';
+
 class GameEngine {
   /**
    * @param {HTMLCanvasElement} canvas - Game canvas element
@@ -84,6 +86,7 @@ class GameEngine {
     this.deathAnimationTime = 0;
     this.deathAnimating = false;   // true during death animation phase
     this.deathStartTime = 0;       // timestamp when death began
+    this._deathTimers = [];        // Track setTimeout IDs for cleanup
 
     // Obstacle progression
     this.obstacleLevel = 1;
@@ -95,6 +98,10 @@ class GameEngine {
 
     // Trailing particle timer
     this.trailTimer = 0;
+
+    // Countdown (3-2-1-GO before game starts)
+    this.countdownValue = 0;
+    this.countdownTimer = 0;
 
     // Animation frame ID
     this.animFrameId = null;
@@ -181,12 +188,17 @@ class GameEngine {
       mobileControl: settings.mobileControl || 'swipe',
       canvasElement: this.canvas,
       onDirection: (dx, dy) => this._handleDirection(dx, dy),
-      onPause: () => this.togglePause()
+      onPause: () => this.togglePause(),
+      onRestart: () => { if (this.state === 'dead' && this.hooks.onGameOver) { this._finalizeDeath(); this.hooks.onGameOver({ restart: true }); } },
+      onQuit: () => { if (this.hooks.onGameOver) { this._finalizeDeath(); this.hooks.onGameOver({ quit: true }); } }
     });
 
-    // Start game loop
-    this.state = 'playing';
+    // Start 3-2-1 countdown before gameplay
+    this.state = 'countdown';
+    this.countdownValue = 3;
+    this.countdownTimer = 0;
     this.lastFrameTime = performance.now();
+    if (this.hooks.onCountdown) this.hooks.onCountdown(this.countdownValue);
     this.animFrameId = requestAnimationFrame(this._loop);
 
     // Play start sound
@@ -205,6 +217,29 @@ class GameEngine {
    * Main game loop (called via requestAnimationFrame)
    */
   _loop(timestamp) {
+    // Calculate delta time (real, not hardcoded)
+    let dt = (timestamp - this.lastFrameTime) / 1000;
+    this.lastFrameTime = timestamp;
+    if (dt > 0.1) dt = 0.1;
+    if (dt <= 0) dt = 0.016;
+
+    // Handle countdown phase
+    if (this.state === 'countdown') {
+      this.countdownTimer += dt;
+      if (this.countdownTimer >= 0.8) { // ~0.8s per count
+        this.countdownTimer = 0;
+        this.countdownValue--;
+        if (this.hooks.onCountdown) this.hooks.onCountdown(this.countdownValue);
+        if (this.countdownValue <= 0) {
+          this.state = 'playing';
+          if (this.hooks.onCountdownEnd) this.hooks.onCountdownEnd();
+        }
+      }
+      this._render(dt);
+      this.animFrameId = requestAnimationFrame(this._loop);
+      return;
+    }
+
     // Handle death animation phase
     if (this.state === 'dead') {
       if (!this.deathAnimating) {
@@ -214,17 +249,20 @@ class GameEngine {
       const elapsed = timestamp - this.deathStartTime;
       const deathDuration = 1200; // 1.2 seconds death animation
 
-      let dt = (timestamp - this.lastFrameTime) / 1000;
-      this.lastFrameTime = timestamp;
-      if (dt > 0.1) dt = 0.016;
-      if (dt <= 0) dt = 0.016;
+      // Continue counting down timer during death animation (fairness)
+      if (this.modeConfig.hasTimer && this.timeRemaining > 0) {
+        this.timeRemaining -= dt;
+        if (this.hooks.onTimerUpdate) {
+          this.hooks.onTimerUpdate(Math.max(0, Math.ceil(this.timeRemaining)));
+        }
+      }
 
       // Update particles during death
       this.particles.update(dt);
       this.deathOverlayAlpha = Math.max(0, 1 - elapsed / deathDuration);
 
       // Render death animation
-      this._render();
+      this._render(dt);
 
       if (elapsed >= deathDuration) {
         // Animation complete, finalize
@@ -239,14 +277,6 @@ class GameEngine {
     }
 
     if (this.state === 'dead') return;
-
-    // Calculate delta time
-    let dt = (timestamp - this.lastFrameTime) / 1000; // seconds
-    this.lastFrameTime = timestamp;
-
-    // Clamp dt to avoid spiral of death (max 100ms)
-    if (dt > 0.1) dt = 0.1;
-    if (dt <= 0) dt = 0.016;
 
     // Only accumulate game ticks when playing
     if (this.state === 'playing') {
@@ -291,7 +321,7 @@ class GameEngine {
 
     // Render (skip during death animation - handled separately)
     if (this.state !== 'dead') {
-      this._render();
+      this._render(dt);
     }
 
     // Continue loop (also continue during death animation)
@@ -372,11 +402,39 @@ class GameEngine {
     if (this.foodManager.checkFoodCollision(this.snake.head.x, this.snake.head.y)) {
       const now = Date.now();
       const combo = this.foodManager.updateCombo(now);
+      this.comboCount = combo;
       if (combo > this.maxCombo) this.maxCombo = combo;
       const foodScore = this.foodManager.calculateFoodScore();
+      const foodType = this.foodManager.food ? this.foodManager.food.type : 'normal';
+      const px = this.snake.head.x * this.renderer.cellSize + this.renderer.cellSize / 2;
+      const py = this.snake.head.y * this.renderer.cellSize + this.renderer.cellSize / 2;
 
+      // Handle poison food (instant negative effect, skip normal processing)
+      if (foodType === 'poison') {
+        this.snake.shrink(3);
+        this.particles.emit('eat', px, py, { color: '#8b00ff' });
+        this._audio('shieldBreak');
+        // Spawn new food and continue (no score/speed/combo update)
+        this.foodManager.spawnFood(this.snake, this.obstacles);
+        const newItem = this.foodManager.trySpawnItem(this.snake, this.obstacles);
+        if (newItem && this.hooks.onItemActivated) {
+          this.hooks.onItemActivated('spawned', newItem);
+        }
+        if (this.hooks.onScoreUpdate) {
+          this.hooks.onScoreUpdate(this.score, this.snake.length, this.foodEaten);
+        }
+        // Skip rest of food processing for poison
+        return;
+      }
+
+      // Normal and golden food processing
       this.snake.grow(1);
       this.score += foodScore;
+      if (foodType === 'golden') {
+        this.score += 20; // Extra +20 bonus
+        this.particles.emit('eat', px, py, { color: '#ffd700' });
+        this.particles.emit('score', px, py - 15, { text: `+${foodScore + 20}⭐`, color: '#ffd700' });
+      }
       this.foodEaten++;
 
       // Update tick speed based on food eaten
@@ -394,12 +452,10 @@ class GameEngine {
       if (combo >= 5) this._audio('combo', { level: Math.min(combo, 10) });
 
       // Particles
-      const px = this.snake.head.x * this.renderer.cellSize + this.renderer.cellSize / 2;
-      const py = this.snake.head.y * this.renderer.cellSize + this.renderer.cellSize / 2;
       this.particles.emit('eat', px, py, { color: this.renderer.getThemeColors().foodColor });
 
-      // Score popup
-      if (foodScore > 10) {
+      // Score popup (non-golden)
+      if (foodScore > 10 && foodType !== 'golden') {
         this.particles.emit('score', px, py - 15,
           { text: `+${foodScore}`, color: combo > 3 ? '#ffd700' : '#ffffff' });
       }
@@ -417,8 +473,12 @@ class GameEngine {
             3, this.snake, this.renderer.gridCols, this.renderer.gridRows, this.obstacleLevel
           );
           this.obstacles = [...this.obstacles, ...newObs].slice(0, 50);
-          if (this.hooks.onScoreUpdate) {
-            ScreenManager.showToast(`⚠ 难度提升！第 ${this.obstacleLevel} 级`, 'info', 2000);
+          // Reset obstacle cache in renderer so it redraws
+          if (this.renderer._lastObstacleHash !== undefined) {
+            this.renderer._lastObstacleHash = '';
+          }
+          if (this.hooks.onObstacleLevelUp) {
+            this.hooks.onObstacleLevelUp(this.obstacleLevel);
           }
         }
       }
@@ -522,13 +582,15 @@ class GameEngine {
       const cs = this.renderer.cellSize;
       const color = this.skinColors ? (this.skinColors.body || '#6c5ce7') : '#6c5ce7';
       // Emit particles at each body segment for dramatic effect
+      this._deathTimers = [];
       for (let i = 0; i < this.snake.body.length; i++) {
         const seg = this.snake.body[i];
         const px = seg.x * cs + cs / 2;
         const py = seg.y * cs + cs / 2;
-        setTimeout(() => {
+        const tid = setTimeout(() => {
           this.particles.emit('death', px, py, { color });
         }, i * 25); // Staggered: each segment explodes 25ms after the previous
+        this._deathTimers.push(tid);
       }
       // Big explosion at head immediately
       const hx = this.snake.head.x * cs + cs / 2;
@@ -545,6 +607,8 @@ class GameEngine {
    * Called after death animation completes
    */
   _finalizeDeath() {
+    // Clear any pending death animation timers
+    this._clearDeathTimers();
     const reason = this.deathReason || 'collision';
 
     // Calculate coins earned
@@ -647,7 +711,7 @@ class GameEngine {
         case 'speedUp': am.playSpeedUp(opts?.level || 1); break;
         case 'achievement': am.playAchievement(); break;
       }
-    } catch(e) {}
+    } catch(e) { /* Audio unavailable - non-critical */ }
   }
 
   /**
@@ -687,12 +751,18 @@ class GameEngine {
   /**
    * End game early (quit)
    */
+  _clearDeathTimers() {
+    for (const tid of this._deathTimers) clearTimeout(tid);
+    this._deathTimers = [];
+  }
+
   quit() {
     if (this.animFrameId) {
       cancelAnimationFrame(this.animFrameId);
       this.animFrameId = null;
     }
     this.state = 'dead';
+    this._clearDeathTimers();
     if (this.inputManager) {
       this.inputManager.destroy();
       this.inputManager = null;
@@ -707,7 +777,8 @@ class GameEngine {
   /**
    * Build render state object and render
    */
-  _render() {
+  _render(dt) {
+    if (!dt) dt = 0.016;
     const renderState = {
       snake: this.snake,
       food: this.foodManager.food,
@@ -727,7 +798,7 @@ class GameEngine {
       obstacleLevel: this.obstacleLevel
     };
 
-    this.renderer.render(renderState, 0.016);
+    this.renderer.render(renderState, dt || 0.016);
 
     // Update HUD speed indicator via hooks
     if (this.hooks.onSpeedUpdate) {
@@ -796,6 +867,29 @@ class GameEngine {
     // Skin collection
     const skinData = StorageManager.getSkinData();
     if (skinData.unlocked && skinData.unlocked.length >= 5) check('skin_collector');
+
+    // Perfect run: completed game without dying and without using shield
+    if (!this.deathReason || this.deathReason === 'time up') {
+      // Player completed the game (time up or reached end)
+      const initialShields = this.modeConfig.initialShields || 0;
+      const shieldsUsed = initialShields - this.shieldCount;
+      if (shieldsUsed <= 0 && !this.foodManager.hasItem('shield')) check('perfect_run');
+    }
+
+    // Endless shield collector: collected 5+ shields in endless mode
+    if (this.mode === 'endless') {
+      const endlessShields = (stats.endlessShieldsCollected || 0) + (this.shieldCount > 0 ? this.shieldCount : 0);
+      if (endlessShields >= 5) check('endless_shield_5');
+      stats.endlessShieldsCollected = endlessShields;
+    }
+
+    // Zero death streak: completed classic mode without death
+    if (this.mode === 'classic' && this.deathReason !== 'collision' && this.deathReason !== 'obstacle') {
+      stats.classicZeroDeathStreak = (stats.classicZeroDeathStreak || 0) + 1;
+      if (stats.classicZeroDeathStreak >= 5) check('zero_death_5');
+    } else if (this.mode === 'classic') {
+      stats.classicZeroDeathStreak = 0;
+    }
 
     // If any newly unlocked
     if (newlyUnlocked.length > 0) {

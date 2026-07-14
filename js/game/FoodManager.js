@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * FoodManager - Handles food & item spawning, placement, and collection logic
  *
@@ -24,16 +26,24 @@ class FoodManager {
   }
 
   /**
-   * Spawn food at a random empty cell
+   * Spawn food at a random empty cell with special food variants
    * @param {Snake} snake - Snake instance for collision avoidance
    * @param {Array} obstacles - Array of obstacle positions
+   * @returns {object|null} Food object with type field
    */
   spawnFood(snake, obstacles = []) {
     const emptyCells = this.getEmptyCells(snake, obstacles);
     if (emptyCells.length === 0) return null;
 
     const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    this.food = { x: cell.x, y: cell.y };
+
+    // Special food chances: 8% golden (+30pts), 5% poison (-3 length) in obstacle mode
+    const roll = Math.random();
+    let foodType = 'normal';
+    if (roll < 0.08) foodType = 'golden';
+    else if (roll < 0.13 && obstacles.length > 0) foodType = 'poison';
+
+    this.food = { x: cell.x, y: cell.y, type: foodType };
     return this.food;
   }
 

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * LeaderboardScreen - Local and global leaderboard display
  * Supports mode filtering, pagination, and daily/all-time toggle

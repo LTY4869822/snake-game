@@ -162,10 +162,10 @@
   --neon-text-shadow: 0 0 10px rgba(255, 0, 255, 0.5), 0 0 30px rgba(255, 0, 255, 0.2);
 }
 
-/* Cyberpunk scanline overlay */
+/* Cyberpunk scanline overlay (only on main area, not game screen) */
 [data-theme="cyberpunk"] #main-area::before {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
     0deg,
@@ -174,8 +174,9 @@
     rgba(0, 255, 255, 0.015) 2px,
     rgba(0, 255, 255, 0.015) 4px
   );
-  pointer-events: none; z-index: 9999;
+  pointer-events: none; z-index: 1;
 }
+[data-theme="cyberpunk"] #main-area { position: relative; }
 
 [data-theme="cyberpunk"] .page-title {
   text-shadow: var(--neon-text-shadow);

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Renderer - Canvas rendering pipeline for the entire game
  *

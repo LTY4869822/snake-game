@@ -116,10 +116,16 @@ class GameScreen {
     // Restore transition for smooth future changes
     requestAnimationFrame(() => { gameScreen.style.transition = ''; });
 
-    // Apply game background to entire screen area (including space around canvas)
+    // Apply game background to entire screen area (safely handle missing bg definitions)
     const bgTheme = settings.bgTheme || 'nebula';
     const bgDef = CONFIG.BACKGROUNDS.find(b => b.id === bgTheme) || CONFIG.BACKGROUNDS[0];
-    const c = bgDef.colors;
+    if (!bgDef || !bgDef.colors) {
+      // Fallback for version mismatch - use first available background
+      const fallback = CONFIG.BACKGROUNDS[0];
+      settings.bgTheme = fallback.id;
+      StorageManager.saveSettings(settings);
+    }
+    const c = (bgDef && bgDef.colors) ? bgDef.colors : CONFIG.BACKGROUNDS[0].colors;
     const bgGradient = `linear-gradient(180deg, ${c.top} 0%, ${c.mid} 50%, ${c.bottom} 100%)`;
     gameScreen.style.background = bgGradient;
     const wrapper = document.querySelector('.game-canvas-wrapper');
@@ -172,15 +178,20 @@ class GameScreen {
         if (remaining <= 30) document.getElementById('hud-timer').style.color = '#ff4757';
       },
       onGameOver: (result) => {
+        if (result.restart) { this._startGame(); return; }
+        if (result.quit) { this._quitGame(); return; }
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('gameOver', { detail: result }));
         }, 600);
       },
+      onCountdown: (value) => { this._showCountdown(value); },
+      onCountdownEnd: () => { this._hideCountdown(); },
       onItemActivated: (type, item) => { this._showItemIndicator(type, item); },
       onItemExpired: (type) => { this._removeItemIndicator(type); },
       onRespawn: () => { ScreenManager.showToast('已复活！', 'info', 1500); },
       onSpeedUpdate: (level) => { this._updateSpeedGauge(level); },
-      onObstacleLevelUpdate: (level) => { this._updateObstacleLevel(level); }
+      onObstacleLevelUpdate: (level) => { this._updateObstacleLevel(level); },
+      onObstacleLevelUp: (level) => { ScreenManager.showToast(`⚠ 难度提升！第 ${level} 级`, 'info', 2000); }
     }, this.sharedRenderer);
 
     const modeOptions = {};
@@ -259,5 +270,46 @@ class GameScreen {
     const el = document.getElementById('hud-obstacle-level');
     if (container) container.style.display = '';
     if (el) el.textContent = level;
+  }
+
+  /**
+   * Show 3-2-1-GO countdown overlay
+   */
+  _showCountdown(value) {
+    const overlay = document.getElementById('game-countdown-overlay');
+    const number = document.getElementById('countdown-number');
+    const goText = document.getElementById('countdown-go');
+    if (!overlay) return;
+
+    overlay.classList.add('active');
+    if (value > 0) {
+      number.textContent = value;
+      number.style.display = '';
+      goText.style.display = 'none';
+      // Re-trigger animation
+      number.style.animation = 'none';
+      void number.offsetWidth;
+      number.style.animation = 'countdown-pop 0.6s ease-out';
+    }
+  }
+
+  /**
+   * Hide countdown overlay
+   */
+  _hideCountdown() {
+    const overlay = document.getElementById('game-countdown-overlay');
+    const number = document.getElementById('countdown-number');
+    const goText = document.getElementById('countdown-go');
+    if (!overlay) return;
+
+    number.style.display = 'none';
+    goText.style.display = '';
+    goText.style.animation = 'none';
+    void goText.offsetWidth;
+    goText.style.animation = 'countdown-pop 0.4s ease-out';
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+    }, 500);
   }
 }

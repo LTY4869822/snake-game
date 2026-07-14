@@ -2,6 +2,8 @@
  * StorageManager - localStorage wrapper for game data persistence
  * Handles settings, stats, skins, achievements, scores, and auth data
  */
+'use strict';
+
 class StorageManager {
   /**
    * Get a value from localStorage with JSON parsing
@@ -21,7 +23,7 @@ class StorageManager {
   }
 
   /**
-   * Set a value in localStorage with JSON serialization
+   * Set a value in localStorage with JSON serialization and quota protection
    * @param {string} key - Storage key
    * @param {*} value - Value to store
    */
@@ -29,8 +31,34 @@ class StorageManager {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-      console.warn(`[Storage] Failed to write "${key}":`, err.message);
+      if (err.name === 'QuotaExceededError' || err.code === 22) {
+        console.warn('[Storage] Quota exceeded, attempting cleanup...');
+        this._emergencyCleanup();
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          console.log('[Storage] Saved after cleanup');
+        } catch (e2) {
+          console.error('[Storage] Still failed after cleanup:', e2.message);
+        }
+      } else {
+        console.warn(`[Storage] Failed to write "${key}":`, err.message);
+      }
     }
+  }
+
+  /**
+   * Emergency cleanup when localStorage quota is exceeded
+   * Removes old score entries first, then least critical data
+   */
+  static _emergencyCleanup() {
+    // Trim scores to last 20
+    try {
+      const scores = this.getLocalScores();
+      if (scores.length > 20) {
+        scores.length = 20;
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SCORES_LOCAL, JSON.stringify(scores));
+      }
+    } catch(e) {}
   }
 
   /**

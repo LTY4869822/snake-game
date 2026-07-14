@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * AudioManager - Procedural audio generation using Web Audio API
  *

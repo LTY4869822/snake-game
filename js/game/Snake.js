@@ -5,6 +5,8 @@
  * Index 0 = head, last index = tail.
  * Movement is controlled via a direction vector that updates on each tick.
  */
+'use strict';
+
 class Snake {
   /**
    * @param {number} startX - Initial head X grid position

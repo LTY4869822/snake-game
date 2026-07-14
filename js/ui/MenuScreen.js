@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * MenuScreen - Dashboard page and global UI management
  *

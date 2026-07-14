@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * AchievementScreen - Achievement grid with ring progress chart
  */

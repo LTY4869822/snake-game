@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * GameModes - Mode-specific configurations, rules, and obstacle generation
  *

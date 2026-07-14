@@ -187,6 +187,60 @@
 .pause-content { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .pause-title { font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
 
+/* Countdown overlay */
+.game-countdown-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20; pointer-events: none;
+  background: rgba(0,0,0,0.25);
+  opacity: 0; transition: opacity 0.15s ease;
+}
+.game-countdown-overlay.active { opacity: 1; }
+.countdown-number {
+  font-size: 120px; font-weight: 900; color: #fff;
+  text-shadow: 0 0 60px rgba(108,92,231,0.8), 0 0 120px rgba(108,92,231,0.4);
+  animation: countdown-pop 0.6s ease-out;
+}
+.countdown-go {
+  font-size: 80px; font-weight: 900; color: #2ed573;
+  text-shadow: 0 0 60px rgba(46,213,115,0.8), 0 0 120px rgba(46,213,115,0.4);
+  animation: countdown-pop 0.4s ease-out;
+}
+@keyframes countdown-pop {
+  0% { transform: scale(2); opacity: 0; }
+  50% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Keyboard shortcut hints */
+.kb-hint {
+  display: inline-block; background: var(--bg-tertiary); color: var(--text-secondary);
+  padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+  border: 1px solid var(--border-color-strong); margin: 0 1px;
+}
+
+/* Keyboard shortcut bar */
+.game-kb-hints {
+  display: flex; gap: 12px; justify-content: center; padding: 4px 12px;
+  font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+  background: var(--panel-bg); border-top: 1px solid var(--border-color);
+}
+
+/* Focus visible for keyboard accessibility */
+button:focus-visible, .mode-card:focus-visible, .action-card:focus-visible,
+.sidebar-link:focus-visible, .lb-tab:focus-visible, .chip:focus-visible,
+.bg-chip:focus-visible, .auth-tab:focus-visible {
+  outline: 2px solid var(--accent-primary); outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .sidebar, .screen, .modal-overlay, .toast-container, .loading-overlay,
+  .game-canvas-wrapper, .mobile-controls, .game-top-bar { display: none !important; }
+  #main-area { overflow: visible; }
+  body { background: #fff; color: #000; }
+}
+
 /* Active items */
 .game-active-items { display: flex; gap: 8px; padding: 6px 16px; justify-content: center; min-height: 36px; }
 .active-item-indicator {

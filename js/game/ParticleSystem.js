@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ParticleSystem - Manages particle effects for visual feedback
  *

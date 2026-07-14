@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ScreenManager - Navigation via sidebar + content sections
  *

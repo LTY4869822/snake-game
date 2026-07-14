@@ -120,6 +120,9 @@ class PixiRenderer {
 
     // Pre-render background
     this._buildBackground();
+
+    // Obstacle caching
+    this._lastObstacleHash = '';
   }
 
   // ==================== GRID CALCULATIONS ====================
@@ -1014,11 +1017,18 @@ class PixiRenderer {
 
     // 1. Background is pre-rendered sprite (no per-frame update needed)
 
-    // 2. Obstacles (redrawn each frame since they can change)
+    // 2. Obstacles (only redraw when they actually change)
     if (state.obstacles && state.obstacles.length > 0) {
-      this._drawObstacles(state.obstacles, theme);
+      const hash = state.obstacles.map(o => `${o.x},${o.y}`).sort().join(';');
+      if (hash !== this._lastObstacleHash) {
+        this._lastObstacleHash = hash;
+        this._drawObstacles(state.obstacles, theme);
+      }
     } else {
-      this.obstacleGfx.clear();
+      if (this._lastObstacleHash !== '') {
+        this._lastObstacleHash = '';
+        this.obstacleGfx.clear();
+      }
     }
 
     // 3. Food
@@ -1092,42 +1102,69 @@ class PixiRenderer {
     const pulse = 1 + Math.sin(this.time * 4) * 0.12;
     const baseR = cs * 0.33;
     const r = baseR * pulse;
+    const foodType = food.type || 'normal';
+
+    // Choose colors based on food type
+    let foodColor, glowColor, highlightColor;
+    if (foodType === 'golden') {
+      foodColor = '#ffd700'; glowColor = 'rgba(255,215,0,0.6)'; highlightColor = 0xffd700;
+    } else if (foodType === 'poison') {
+      foodColor = '#8b00ff'; glowColor = 'rgba(139,0,255,0.5)'; highlightColor = 0x8b00ff;
+    } else {
+      foodColor = theme.foodColor; glowColor = theme.foodGlow; highlightColor = this._hexToPixi(theme.foodColor);
+    }
 
     // Outer glow
-    const glowColor = this._hexToPixi(theme.foodColor);
+    const glowPixi = this._hexToPixi(glowColor);
     for (let i = 3; i >= 0; i--) {
       const gr = r + i * r * 0.3;
-      g.beginFill(glowColor, 0.06 * (4 - i));
+      g.beginFill(glowPixi, 0.06 * (4 - i));
       g.drawCircle(cx, cy, gr);
       g.endFill();
     }
 
-    // Main apple body
-    const foodHex = theme.foodColor;
-    const r1 = parseInt(foodHex.slice(1, 3), 16) / 255;
-    const g1 = parseInt(foodHex.slice(3, 5), 16) / 255;
-    const b1 = parseInt(foodHex.slice(5, 7), 16) / 255;
-
-    // Slightly elongated (apple shape) - draw as circle with slight deformation
+    // Main body
+    const r1 = parseInt(foodColor.slice(1, 3), 16) / 255;
+    const g1 = parseInt(foodColor.slice(3, 5), 16) / 255;
+    const b1 = parseInt(foodColor.slice(5, 7), 16) / 255;
     g.beginFill(PIXI.utils.rgb2hex([r1, g1, b1]));
     g.drawEllipse(cx, cy - r * 0.05, r, r * 1.05);
     g.endFill();
 
-    // Specular highlight (top-left white reflection)
+    // Specular highlight
     g.beginFill(0xffffff, 0.4);
     g.drawEllipse(cx - r * 0.25, cy - r * 0.35, r * 0.25, r * 0.2);
     g.endFill();
 
-    // Small stem
-    g.lineStyle(cs * 0.06, 0x4caf50, 0.8);
-    g.moveTo(cx, cy - r * 0.9);
-    g.lineTo(cx + r * 0.2, cy - r * 1.2);
-    g.lineStyle(0);
-
-    // Small leaf
-    g.beginFill(0x66bb6a, 0.7);
-    g.drawEllipse(cx + r * 0.3, cy - r * 1.05, r * 0.22, r * 0.12);
-    g.endFill();
+    if (foodType === 'golden') {
+      // Sparkle stars around golden food
+      for (let i = 0; i < 4; i++) {
+        const angle = this.time * 2 + i * Math.PI / 2;
+        const sx = cx + Math.cos(angle) * r * 1.3;
+        const sy = cy + Math.sin(angle) * r * 1.3;
+        g.beginFill(0xffffff, 0.5 + Math.sin(this.time * 6 + i) * 0.3);
+        g.drawCircle(sx, sy, cs * 0.05);
+        g.endFill();
+      }
+    } else if (foodType === 'poison') {
+      // X mark on poison food
+      g.lineStyle(cs * 0.05, 0xffffff, 0.5);
+      const xSize = r * 0.5;
+      g.moveTo(cx - xSize, cy - xSize);
+      g.lineTo(cx + xSize, cy + xSize);
+      g.moveTo(cx + xSize, cy - xSize);
+      g.lineTo(cx - xSize, cy + xSize);
+      g.lineStyle(0);
+    } else {
+      // Normal: stem + leaf
+      g.lineStyle(cs * 0.06, 0x4caf50, 0.8);
+      g.moveTo(cx, cy - r * 0.9);
+      g.lineTo(cx + r * 0.2, cy - r * 1.2);
+      g.lineStyle(0);
+      g.beginFill(0x66bb6a, 0.7);
+      g.drawEllipse(cx + r * 0.3, cy - r * 1.05, r * 0.22, r * 0.12);
+      g.endFill();
+    }
   }
 
   // ==================== ITEMS ====================

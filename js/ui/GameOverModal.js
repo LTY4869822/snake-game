@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * GameOverModal - Handles the game over result display
  *
@@ -162,6 +164,7 @@ class GameOverModal {
       navigator.share({
         title: 'Snake Pro - 贪吃蛇',
         text: shareText,
+        url: window.location.href,
       }).catch(() => {});
     } else {
       // Fallback: copy to clipboard

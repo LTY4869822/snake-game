@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Snake Pro - 高颜值贪吃蛇网页游戏，8种精美背景主题、5种游戏模式、全球排行榜、皮肤商店、成就系统">
   <!-- Redirect to auth page if not logged in and not guest -->
   <script>
     (function(){
@@ -368,6 +369,11 @@
     </div>
     <div class="game-canvas-wrapper">
       <canvas id="game-canvas"></canvas>
+      <!-- Countdown overlay -->
+      <div class="game-countdown-overlay" id="game-countdown-overlay">
+        <span class="countdown-number" id="countdown-number">3</span>
+        <span class="countdown-go" id="countdown-go" style="display:none">GO!</span>
+      </div>
       <div class="game-pause-overlay" id="game-pause-overlay">
         <div class="pause-content">
           <h2 class="pause-title">游戏暂停</h2>
@@ -378,6 +384,12 @@
       </div>
     </div>
     <div class="game-active-items" id="game-active-items"></div>
+    <div class="game-kb-hints" id="game-kb-hints">
+      <span><span class="kb-hint">W A S D</span> / <span class="kb-hint">↑ ↓ ← →</span> 移动</span>
+      <span><span class="kb-hint">Space</span> 暂停</span>
+      <span><span class="kb-hint">R</span> 重新开始</span>
+      <span><span class="kb-hint">Esc</span> 返回菜单</span>
+    </div>
     <div class="mobile-controls" id="mobile-controls">
       <div class="dpad">
         <button class="dpad-btn dpad-up" data-dir="up">▲</button>
@@ -463,6 +475,7 @@
 
   <!-- ==================== Scripts ==================== -->
   <script src="https://pixijs.download/v7.4.2/pixi.min.js"></script>
+  <script>window.PIXI||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js"><\/script>');</script>
   <script src="js/config.js"></script>
   <script src="js/storage/StorageManager.js"></script>
   <script src="js/network/ApiClient.js"></script>

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ApiClient - REST API wrapper for backend communication
  * Handles JWT token management, request formatting, and error handling
