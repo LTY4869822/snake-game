@@ -116,20 +116,24 @@ class GameScreen {
     // Restore transition for smooth future changes
     requestAnimationFrame(() => { gameScreen.style.transition = ''; });
 
-    // Apply game background to entire screen area (safely handle missing bg definitions)
+    // Apply game background to entire screen area (body + screen + wrapper)
+    // This ensures ZERO gaps regardless of layout quirks
     const bgTheme = settings.bgTheme || 'nebula';
     const bgDef = CONFIG.BACKGROUNDS.find(b => b.id === bgTheme) || CONFIG.BACKGROUNDS[0];
     if (!bgDef || !bgDef.colors) {
-      // Fallback for version mismatch - use first available background
       const fallback = CONFIG.BACKGROUNDS[0];
       settings.bgTheme = fallback.id;
       StorageManager.saveSettings(settings);
     }
     const c = (bgDef && bgDef.colors) ? bgDef.colors : CONFIG.BACKGROUNDS[0].colors;
     const bgGradient = `linear-gradient(180deg, ${c.top} 0%, ${c.mid} 50%, ${c.bottom} 100%)`;
+
+    // Cover every possible layer that could show through
+    document.body.style.background = bgGradient;
     gameScreen.style.background = bgGradient;
+    gameScreen.style.backgroundColor = c.bottom; // Solid fallback
     const wrapper = document.querySelector('.game-canvas-wrapper');
-    if (wrapper) wrapper.style.background = bgGradient;
+    if (wrapper) { wrapper.style.background = bgGradient; wrapper.style.backgroundColor = c.bottom; }
 
     // Reset HUD
     document.getElementById('hud-score').textContent = '0';
@@ -219,9 +223,12 @@ class GameScreen {
     const gameScreen = document.getElementById('screen-game');
     gameScreen.classList.remove('active');
     gameScreen.removeAttribute('data-bg');
+    // Clean up all inline backgrounds
+    document.body.style.background = '';
     gameScreen.style.background = '';
+    gameScreen.style.backgroundColor = '';
     const wrapper = document.querySelector('.game-canvas-wrapper');
-    if (wrapper) wrapper.style.background = '';
+    if (wrapper) { wrapper.style.background = ''; wrapper.style.backgroundColor = ''; }
     document.getElementById('game-pause-overlay').classList.remove('active');
     document.getElementById('app-shell').style.display = 'flex';
     // Destroy shared renderer when leaving game screen entirely
