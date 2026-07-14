@@ -16,8 +16,9 @@
 class Renderer {
   /**
    * @param {HTMLCanvasElement} canvas
+   * @param {string} [bgThemeId] - Background theme ID
    */
-  constructor(canvas) {
+  constructor(canvas, bgThemeId) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.gridCols = CONFIG.GRID_COLS;
@@ -26,6 +27,7 @@ class Renderer {
     this.width = this.gridCols * this.cellSize;
     this.height = this.gridRows * this.cellSize;
     this.time = 0; // For animations
+    this.bgThemeId = bgThemeId || 'nebula';
 
     this.resize();
   }
@@ -153,12 +155,92 @@ class Renderer {
   }
 
   /**
-   * Draw solid background
+   * Draw background with theme support
    */
   drawBackground(theme) {
     const ctx = this.ctx;
-    ctx.fillStyle = theme.background;
-    ctx.fillRect(0, 0, this.width, this.height);
+    const bgId = this.bgThemeId || 'nebula';
+    const bgDef = CONFIG.BACKGROUNDS.find(b => b.id === bgId) || CONFIG.BACKGROUNDS[0];
+    const c = bgDef.colors;
+    const w = this.width, h = this.height;
+
+    // Vertical gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, c.top);
+    grad.addColorStop(0.5, c.mid);
+    grad.addColorStop(1, c.bottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Theme-specific decorations
+    if (bgId === 'nebula' || bgId === 'aurora') {
+      // Stars
+      for (let i = 0; i < 80; i++) {
+        const sx = Math.random() * w, sy = Math.random() * h * 0.7;
+        ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.random() * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 0.3 + Math.random() * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    if (bgId === 'ocean') {
+      // Light rays
+      for (let i = 0; i < 5; i++) {
+        const rx = w * 0.1 + w * 0.8 * i / 4;
+        const grad2 = ctx.createLinearGradient(rx, 0, rx, h * 0.5);
+        grad2.addColorStop(0, 'rgba(255,255,255,0.06)');
+        grad2.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = grad2;
+        ctx.beginPath();
+        ctx.moveTo(rx - 25 + (i % 2) * 10, 0);
+        ctx.lineTo(rx + 35 + (i % 2) * 15, h * 0.55);
+        ctx.lineTo(rx - 35 - (i % 2) * 15, h * 0.55);
+        ctx.fill();
+      }
+    }
+    if (bgId === 'sakura') {
+      // Cherry blossom petals
+      for (let i = 0; i < 30; i++) {
+        const px = Math.random() * w, py = Math.random() * h * 0.7;
+        ctx.fillStyle = `rgba(${240 + Math.random() * 15},${140 + Math.random() * 30},${150 + Math.random() * 30},0.4)`;
+        ctx.beginPath();
+        ctx.ellipse(px, py, 2 + Math.random() * 5, 1 + Math.random() * 3, Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    if (bgId === 'sunset') {
+      // Sun
+      const sunX = w * 0.5, sunY = h * 0.7, sunR = Math.min(w, h) * 0.15;
+      const sunGrad = ctx.createRadialGradient(sunX, sunY, sunR * 0.1, sunX, sunY, sunR * 1.5);
+      sunGrad.addColorStop(0, 'rgba(255,238,136,0.7)');
+      sunGrad.addColorStop(0.5, 'rgba(255,217,61,0.2)');
+      sunGrad.addColorStop(1, 'rgba(255,107,107,0)');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath(); ctx.arc(sunX, sunY, sunR * 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    if (bgId === 'bamboo') {
+      // Bamboo stalks
+      for (let i = 0; i < 6; i++) {
+        const bx = w * 0.1 + w * 0.8 * i / 5;
+        ctx.strokeStyle = 'rgba(46,125,50,0.2)';
+        ctx.lineWidth = 3 + Math.random() * 5;
+        ctx.beginPath();
+        ctx.moveTo(bx, 0);
+        ctx.lineTo(bx + (Math.random() - 0.5) * 10, h);
+        ctx.stroke();
+      }
+    }
+    if (bgId === 'lava') {
+      // Glow spots
+      for (let i = 0; i < 8; i++) {
+        const gx = Math.random() * w, gy = Math.random() * h;
+        const gg = ctx.createRadialGradient(gx, gy, 0, gx, gy, 20 + Math.random() * 40);
+        gg.addColorStop(0, 'rgba(255,69,0,0.2)');
+        gg.addColorStop(1, 'rgba(255,69,0,0)');
+        ctx.fillStyle = gg;
+        ctx.beginPath(); ctx.arc(gx, gy, 40, 0, Math.PI * 2); ctx.fill();
+      }
+    }
   }
 
   /**

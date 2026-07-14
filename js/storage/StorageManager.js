@@ -49,6 +49,7 @@ class StorageManager {
   static getSettings() {
     return this.get(CONFIG.STORAGE_KEYS.SETTINGS, {
       theme: 'dark',
+      bgTheme: 'nebula',
       sfxVolume: 70,
       bgmVolume: 40,
       controlScheme: 'wasd',

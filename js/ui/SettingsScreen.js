@@ -78,6 +78,9 @@ class SettingsScreen {
       });
     });
 
+    // Background selector
+    this._buildBgSelector();
+
     // Sync
     document.getElementById('btn-sync-data')?.addEventListener('click', () => this._syncData());
 
@@ -104,6 +107,8 @@ class SettingsScreen {
     document.querySelectorAll('[data-ctrl]').forEach(b => b.classList.toggle('active', b.dataset.ctrl === (s.controlScheme || 'wasd')));
     document.querySelectorAll('[data-mobile-ctrl]').forEach(b => b.classList.toggle('active', b.dataset.mobileCtrl === (s.mobileControl || 'swipe')));
     document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b.dataset.diff === (s.difficulty || 'normal')));
+    // Background selection
+    this._updateBgSelection(s.bgTheme || 'nebula');
 
     // Sync audio volumes to AudioManager if initialized
     const am = AudioManager.instance;
@@ -117,6 +122,35 @@ class SettingsScreen {
         am.bgmEnabled = s.musicEnabled;
       }
     }
+  }
+
+  _buildBgSelector() {
+    const container = document.getElementById('bg-selector');
+    if (!container) return;
+
+    const bgDefs = CONFIG.BACKGROUNDS;
+    container.innerHTML = '';
+
+    bgDefs.forEach(bg => {
+      const chip = document.createElement('button');
+      chip.className = 'bg-chip';
+      chip.dataset.bg = bg.id;
+      chip.innerHTML = `<span class="bg-chip-icon">${bg.icon}</span><span class="bg-chip-name">${bg.name}</span>`;
+      chip.addEventListener('click', () => {
+        const s = StorageManager.getSettings();
+        s.bgTheme = bg.id;
+        StorageManager.saveSettings(s);
+        this._updateBgSelection(bg.id);
+        ScreenManager.showToast(`游戏背景已切换为「${bg.name}」`, 'success');
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  _updateBgSelection(bgId) {
+    document.querySelectorAll('.bg-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.bg === bgId);
+    });
   }
 
   async _syncData() {

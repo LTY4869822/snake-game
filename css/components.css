@@ -172,7 +172,6 @@
 }
 .game-canvas-wrapper canvas {
   display: block;
-  max-width: 100vw; max-height: calc(100vh - 90px);
   image-rendering: auto;
 }
 
@@ -280,3 +279,21 @@
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
+
+/* ============ BACKGROUND SELECTOR ============ */
+.bg-selector {
+  display: flex; flex-wrap: wrap; gap: 6px; flex: 1; justify-content: flex-end;
+}
+.bg-chip {
+  padding: 5px 10px; border-radius: 16px; border: 1px solid var(--border-color-strong);
+  background: transparent; color: var(--text-secondary); font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: inherit; transition: all var(--transition-fast);
+  display: flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.bg-chip:hover { border-color: var(--accent-primary); color: var(--text-primary); background: var(--btn-secondary-bg); }
+.bg-chip.active {
+  background: var(--accent-primary); border-color: var(--accent-primary); color: #fff;
+  box-shadow: 0 2px 8px rgba(108,92,231,0.3);
+}
+.bg-chip .bg-chip-icon { font-size: 14px; }
+.bg-chip .bg-chip-name { font-size: 11px; }

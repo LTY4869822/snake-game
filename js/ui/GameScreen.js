@@ -9,6 +9,7 @@ class GameScreen {
     this.screenManager = screenManager;
     this.canvas = document.getElementById('game-canvas');
     this.gameEngine = null;
+    this.sharedRenderer = null;  // PixiRenderer reused across games
     this.selectedMode = 'classic';
     this.selectedTime = CONFIG.MODE_TIMED_DURATION;
 
@@ -104,7 +105,25 @@ class GameScreen {
 
     // Hide sidebar + main area, show game screen
     document.getElementById('app-shell').style.display = 'none';
-    document.getElementById('screen-game').classList.add('active');
+    const gameScreen = document.getElementById('screen-game');
+
+    // Force game screen to be fully visible BEFORE creating WebGL context
+    // CSS has transition: opacity 0.3s which can cause WebGL init to fail
+    gameScreen.style.transition = 'none';
+    gameScreen.classList.add('active');
+    // Force reflow so the browser registers the canvas as visible
+    void gameScreen.offsetWidth;
+    // Restore transition for smooth future changes
+    requestAnimationFrame(() => { gameScreen.style.transition = ''; });
+
+    // Apply game background to entire screen area (including space around canvas)
+    const bgTheme = settings.bgTheme || 'nebula';
+    const bgDef = CONFIG.BACKGROUNDS.find(b => b.id === bgTheme) || CONFIG.BACKGROUNDS[0];
+    const c = bgDef.colors;
+    const bgGradient = `linear-gradient(180deg, ${c.top} 0%, ${c.mid} 50%, ${c.bottom} 100%)`;
+    gameScreen.style.background = bgGradient;
+    const wrapper = document.querySelector('.game-canvas-wrapper');
+    if (wrapper) wrapper.style.background = bgGradient;
 
     // Reset HUD
     document.getElementById('hud-score').textContent = '0';
@@ -126,10 +145,21 @@ class GameScreen {
     const speedEl = document.getElementById('hud-speed');
     if (speedEl) speedEl.textContent = '🐢';
 
-    // Cleanup previous engine
-    if (this.gameEngine) { this.gameEngine.quit(); }
+    // Cleanup previous engine (but keep the shared renderer)
+    if (this.gameEngine) { this.gameEngine.quit(); this.gameEngine = null; }
 
-    // Create engine
+    // Reuse or create PixiJS renderer (avoids WebGL context destroy/recreate cycle)
+    if (!this.sharedRenderer) {
+      const bgTheme = settings.bgTheme || 'nebula';
+      this.sharedRenderer = new PixiRenderer(this.canvas, bgTheme);
+    } else {
+      // Update background if theme changed
+      const bgTheme = settings.bgTheme || 'nebula';
+      this.sharedRenderer.setBackground(bgTheme);
+      this.sharedRenderer.resize(); // Recalculate grid for current viewport
+    }
+
+    // Create engine with shared renderer
     const skinColors = activeSkin.colors || { head: '#a29bfe', body: '#6c5ce7', tail: '#3d3590', glow: 'rgba(108,92,231,0.5)' };
 
     this.gameEngine = new GameEngine(this.canvas, {
@@ -151,7 +181,7 @@ class GameScreen {
       onRespawn: () => { ScreenManager.showToast('已复活！', 'info', 1500); },
       onSpeedUpdate: (level) => { this._updateSpeedGauge(level); },
       onObstacleLevelUpdate: (level) => { this._updateObstacleLevel(level); }
-    });
+    }, this.sharedRenderer);
 
     const modeOptions = {};
     if (this.selectedMode === 'timed') modeOptions.timeLimit = this.selectedTime;
@@ -175,9 +205,19 @@ class GameScreen {
    */
   _quitGame() {
     if (this.gameEngine) { this.gameEngine.quit(); this.gameEngine = null; }
-    document.getElementById('screen-game').classList.remove('active');
+    const gameScreen = document.getElementById('screen-game');
+    gameScreen.classList.remove('active');
+    gameScreen.removeAttribute('data-bg');
+    gameScreen.style.background = '';
+    const wrapper = document.querySelector('.game-canvas-wrapper');
+    if (wrapper) wrapper.style.background = '';
     document.getElementById('game-pause-overlay').classList.remove('active');
     document.getElementById('app-shell').style.display = 'flex';
+    // Destroy shared renderer when leaving game screen entirely
+    if (this.sharedRenderer) {
+      this.sharedRenderer.destroy();
+      this.sharedRenderer = null;
+    }
     this.screenManager.navigateTo('dashboard');
   }
 

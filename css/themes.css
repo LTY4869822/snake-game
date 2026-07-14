@@ -194,3 +194,13 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
 }
+
+/* ============ Game Screen Backgrounds (match canvas backgrounds) ============ */
+#screen-game[data-bg="nebula"]  { background: linear-gradient(180deg, #0a0a2e 0%, #1a0a3e 50%, #0d0d24 100%); }
+#screen-game[data-bg="ocean"]   { background: linear-gradient(180deg, #0a4a7a 0%, #062a4a 50%, #001a33 100%); }
+#screen-game[data-bg="sakura"]  { background: linear-gradient(180deg, #fce4ec 0%, #f8bbd0 50%, #e8ded0 100%); }
+#screen-game[data-bg="aurora"]  { background: linear-gradient(180deg, #0a0a1a 0%, #0f1a2e 50%, #0d1a1a 100%); }
+#screen-game[data-bg="cyber"]   { background: linear-gradient(180deg, #050510 0%, #0a0a20 50%, #0a0a15 100%); }
+#screen-game[data-bg="sunset"]  { background: linear-gradient(180deg, #1a0a2e 0%, #6b2a4a 50%, #e8784a 100%); }
+#screen-game[data-bg="bamboo"]  { background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%); }
+#screen-game[data-bg="lava"]    { background: linear-gradient(180deg, #1a0a0a 0%, #2a0a0a 50%, #3a0a0a 100%); }

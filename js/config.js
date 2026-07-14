@@ -139,6 +139,58 @@ const CONFIG = {
     { id: 'perfect_run', name: '完美一局', desc: '不带护盾通关任意模式且未死亡', icon: '🏅', reward: 200 },
   ],
 
+  // ===== Game Background Themes =====
+  BACKGROUNDS: [
+    {
+      id: 'nebula',
+      name: '星空星云',
+      icon: '🌌',
+      colors: { top: '#0a0a2e', mid: '#1a0a3e', bottom: '#0d0d24', accent: '#6c5ce7', accent2: '#00d2ff' }
+    },
+    {
+      id: 'ocean',
+      name: '深海世界',
+      icon: '🌊',
+      colors: { top: '#0a4a7a', mid: '#062a4a', bottom: '#001a33', accent: '#00b4d8', accent2: '#90e0ef' }
+    },
+    {
+      id: 'sakura',
+      name: '樱花庭院',
+      icon: '🌸',
+      colors: { top: '#fce4ec', mid: '#f8bbd0', bottom: '#e8ded0', accent: '#f06292', accent2: '#f48fb1' }
+    },
+    {
+      id: 'aurora',
+      name: '极光之夜',
+      icon: '🌠',
+      colors: { top: '#0a0a1a', mid: '#0f1a2e', bottom: '#0d1a1a', accent: '#00ff88', accent2: '#7cffc4' }
+    },
+    {
+      id: 'cyber',
+      name: '赛博都市',
+      icon: '🌃',
+      colors: { top: '#050510', mid: '#0a0a20', bottom: '#0a0a15', accent: '#ff00ff', accent2: '#00ffff' }
+    },
+    {
+      id: 'sunset',
+      name: '日落黄昏',
+      icon: '🌅',
+      colors: { top: '#1a0a2e', mid: '#6b2a4a', bottom: '#e8784a', accent: '#ff6b6b', accent2: '#ffd93d' }
+    },
+    {
+      id: 'bamboo',
+      name: '竹林清风',
+      icon: '🎋',
+      colors: { top: '#e8f5e9', mid: '#c8e6c9', bottom: '#a5d6a7', accent: '#4caf50', accent2: '#81c784' }
+    },
+    {
+      id: 'lava',
+      name: '熔岩地心',
+      icon: '🌋',
+      colors: { top: '#1a0a0a', mid: '#2a0a0a', bottom: '#3a0a0a', accent: '#ff4500', accent2: '#ffa500' }
+    }
+  ],
+
   // Item types for random spawning (weighted)
   ITEM_TYPES: [
     { type: 'doubleScore', weight: 20, label: '双倍分数', color: '#ffd700' },
@@ -153,3 +205,4 @@ const CONFIG = {
 Object.freeze(CONFIG.SKINS);
 Object.freeze(CONFIG.ACHIEVEMENTS);
 Object.freeze(CONFIG.ITEM_TYPES);
+Object.freeze(CONFIG.BACKGROUNDS);
