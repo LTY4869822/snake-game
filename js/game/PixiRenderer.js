@@ -639,10 +639,11 @@ class PixiRenderer {
       }
     };
 
-    drawAuroraBand(h * 0.25, 50, 0x00ff88, 0.15, 25);
-    drawAuroraBand(h * 0.35, 40, 0x7cffc4, 0.12, 20);
-    drawAuroraBand(h * 0.3, 55, 0x00cc66, 0.08, 30);
-    drawAuroraBand(h * 0.2, 35, 0x44ffaa, 0.1, 18);
+    // Use teal/cyan/purple tones — avoids blending with green snake skins
+    drawAuroraBand(h * 0.25, 50, 0x00ddcc, 0.08, 25);
+    drawAuroraBand(h * 0.35, 40, 0x4488ff, 0.06, 20);
+    drawAuroraBand(h * 0.3, 55, 0x44ddcc, 0.05, 30);
+    drawAuroraBand(h * 0.2, 35, 0x8866ff, 0.06, 18);
 
     // Mountain silhouettes at bottom
     g.beginFill(0x0a0a1a, 0.7);
