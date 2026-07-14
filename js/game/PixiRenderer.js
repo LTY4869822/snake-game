@@ -545,34 +545,25 @@ class PixiRenderer {
       g.lineStyle(0);
     }
 
-    // Cherry blossom petals
-    for (let i = 0; i < 50; i++) {
+    // Cherry blossom petals (subtle, low opacity for gameplay clarity)
+    for (let i = 0; i < 25; i++) {
       const px = Math.random() * w;
-      const py = Math.random() * h * 0.8;
-      const petalSize = 3 + Math.random() * 7;
+      const py = Math.random() * h * 0.7;
+      const petalSize = 2 + Math.random() * 5;
       const petalColors = [0xf8bbd0, 0xf48fb1, 0xfce4ec, 0xf06292, 0xffffff];
       const pc = petalColors[Math.floor(Math.random() * petalColors.length)];
-      const alpha = 0.35 + Math.random() * 0.55;
-      const angle = Math.random() * Math.PI * 2;
+      const alpha = 0.15 + Math.random() * 0.25;
 
-      // Draw petal as a stretched ellipse
       g.beginFill(pc, alpha);
       g.drawEllipse(px, py, petalSize, petalSize * 0.4);
       g.endFill();
-
-      // Sometimes draw a second overlapping petal (flower shape)
-      if (Math.random() < 0.3) {
-        g.beginFill(pc, alpha * 0.7);
-        g.drawEllipse(px, py, petalSize * 0.4, petalSize);
-        g.endFill();
-      }
     }
 
-    // Ground fading at bottom
+    // Ground fading at bottom (warm brown, not green — avoids blending with green snake)
     for (let i = 0; i < 10; i++) {
       const t = i / 10;
       const y = h * (0.8 + t * 0.2);
-      g.beginFill(0xc8e6c9, 0.03 + t * 0.04);
+      g.beginFill(0xd7ccc8, 0.03 + t * 0.04);
       g.drawRect(0, y, w, Math.ceil(h / 10) + 1);
       g.endFill();
     }
@@ -826,73 +817,66 @@ class PixiRenderer {
   _drawBamboo(g) {
     const w = this.width, h = this.height;
 
-    // Light spots filtering through leaves
-    for (let i = 0; i < 30; i++) {
+    // Soft light spots (very subtle)
+    for (let i = 0; i < 15; i++) {
       const lx = Math.random() * w;
       const ly = Math.random() * h;
-      const lr = 10 + Math.random() * 50;
-      for (let j = 3; j >= 0; j--) {
-        g.beginFill(0xffffff, 0.02 * (4 - j));
-        g.drawEllipse(lx, ly, lr + j * 12, (lr + j * 12) * 0.6);
+      const lr = 10 + Math.random() * 40;
+      for (let j = 2; j >= 0; j--) {
+        g.beginFill(0xffffff, 0.015 * (3 - j));
+        g.drawEllipse(lx, ly, lr + j * 10, (lr + j * 10) * 0.6);
         g.endFill();
       }
     }
 
-    // Bamboo stalks
-    const stalkCount = 14;
+    // Bamboo stalks (very subdued — gameplay clarity first)
+    const stalkCount = 8;
     for (let i = 0; i < stalkCount; i++) {
       const sx = w * 0.02 + (w * 0.96 / (stalkCount - 1)) * i + (Math.random() - 0.5) * 30;
-      const sw = 4 + Math.random() * 8;
-      const segments = 5 + Math.floor(Math.random() * 8);
+      const sw = 3 + Math.random() * 5;
+      const segments = 4 + Math.floor(Math.random() * 5);
       const segH = h / segments;
 
       for (let s = 0; s < segments; s++) {
         const sy = s * segH;
-        // Slight tapering
         const taper = 1 - s * 0.04;
         const currentW = sw * taper;
-        const eco = 0x2e7d32;
-        const elc = 0x4caf50;
+        const eco = 0x558b2f;
+        const elc = 0x7cb342;
         const color = this._lerpPixiColor(eco, elc, s / segments);
 
-        g.beginFill(color, 0.35);
+        g.beginFill(color, 0.1);
         g.drawRoundedRect(sx - currentW / 2, sy, currentW, segH + 2, 1);
         g.endFill();
 
-        // Node line (horizontal ring at joint)
         if (s < segments - 1) {
-          g.beginFill(0x1b5e20, 0.4);
-          g.drawRect(sx - currentW / 2 - 1, sy + segH - 2, currentW + 2, 3);
-          g.endFill();
-          // Highlight on node
-          g.beginFill(0x81c784, 0.2);
-          g.drawRect(sx - currentW / 2 + 1, sy + segH - 1, currentW - 2, 1);
+          g.beginFill(0x33691e, 0.15);
+          g.drawRect(sx - currentW / 2 - 1, sy + segH - 2, currentW + 2, 2);
           g.endFill();
         }
       }
     }
 
-    // Leaves
-    for (let i = 0; i < 40; i++) {
+    // Leaves (fewer, more subtle)
+    for (let i = 0; i < 15; i++) {
       const lx = Math.random() * w;
-      const ly = Math.random() * h * 0.7;
-      const lw = 3 + Math.random() * 8;
-      const lh = lw * (2 + Math.random() * 3);
-      const angle = Math.random() * Math.PI * 2;
-      const alpha = 0.15 + Math.random() * 0.3;
-      const lc = Math.random() < 0.5 ? 0x4caf50 : 0x81c784;
+      const ly = Math.random() * h * 0.6;
+      const lw = 2 + Math.random() * 5;
+      const lh = lw * (2 + Math.random() * 2);
+      const alpha = 0.06 + Math.random() * 0.12;
+      const lc = Math.random() < 0.5 ? 0x66bb6a : 0x81c784;
 
       g.beginFill(lc, alpha);
       g.drawEllipse(lx, ly, lw, lh);
       g.endFill();
     }
 
-    // Ground
-    for (let i = 0; i < 8; i++) {
-      const t = i / 8;
-      const y = h * (0.85 + t * 0.15);
-      g.beginFill(0x33691e, 0.03 + t * 0.06);
-      g.drawRect(0, y, w, Math.ceil(h / 8) + 1);
+    // Ground (very subtle)
+    for (let i = 0; i < 6; i++) {
+      const t = i / 6;
+      const y = h * (0.88 + t * 0.12);
+      g.beginFill(0x558b2f, 0.02 + t * 0.03);
+      g.drawRect(0, y, w, Math.ceil(h / 6) + 1);
       g.endFill();
     }
   }
@@ -928,51 +912,51 @@ class PixiRenderer {
       g.lineStyle(0);
     };
 
-    // Main lava veins
+    // Main lava veins (subdued for gameplay clarity)
     const veins = [
-      { sx: w * 0.1, sy: 0, ex: w * 0.4, ey: h * 0.4, c: 0xff4500, a: 0.35, t: 3 },
-      { sx: w * 0.4, sy: h * 0.4, ex: w * 0.6, ey: h * 0.7, c: 0xff6600, a: 0.3, t: 2.5 },
-      { sx: w * 0.6, sy: h * 0.7, ex: w * 0.9, ey: h, c: 0xff4500, a: 0.25, t: 2 },
-      { sx: w * 0.8, sy: 0, ex: w * 0.5, ey: h * 0.3, c: 0xff6600, a: 0.3, t: 2.5 },
-      { sx: w * 0.3, sy: h * 0.5, ex: 0, ey: h * 0.8, c: 0xff4500, a: 0.2, t: 2 },
-      { sx: w * 0.65, sy: h * 0.3, ex: w, ey: h * 0.5, c: 0xff5500, a: 0.25, t: 2 },
+      { sx: w * 0.1, sy: 0, ex: w * 0.4, ey: h * 0.4, c: 0xff4500, a: 0.15, t: 2 },
+      { sx: w * 0.4, sy: h * 0.4, ex: w * 0.6, ey: h * 0.7, c: 0xff6600, a: 0.12, t: 1.8 },
+      { sx: w * 0.6, sy: h * 0.7, ex: w * 0.9, ey: h, c: 0xff4500, a: 0.1, t: 1.5 },
+      { sx: w * 0.8, sy: 0, ex: w * 0.5, ey: h * 0.3, c: 0xff6600, a: 0.12, t: 1.8 },
+      { sx: w * 0.3, sy: h * 0.5, ex: 0, ey: h * 0.8, c: 0xff4500, a: 0.1, t: 1.5 },
+      { sx: w * 0.65, sy: h * 0.3, ex: w, ey: h * 0.5, c: 0xff5500, a: 0.1, t: 1.5 },
     ];
     for (const v of veins) {
       drawVein(v.sx, v.sy, v.ex, v.ey, v.c, v.a, v.t);
     }
 
-    // Small branching veins
-    for (let i = 0; i < 20; i++) {
+    // Small branching veins (fewer, more subtle)
+    for (let i = 0; i < 8; i++) {
       const sx = Math.random() * w;
       const sy = Math.random() * h;
-      const ex = sx + (Math.random() - 0.5) * 150;
-      const ey = sy + (Math.random() - 0.5) * 120;
-      const alpha = 0.08 + Math.random() * 0.15;
+      const ex = sx + (Math.random() - 0.5) * 120;
+      const ey = sy + (Math.random() - 0.5) * 100;
+      const alpha = 0.04 + Math.random() * 0.08;
       const colors = [0xff4500, 0xff6600, 0xffa500];
-      drawVein(sx, sy, ex, ey, colors[Math.floor(Math.random() * colors.length)], alpha, 0.8 + Math.random() * 1.5);
+      drawVein(sx, sy, ex, ey, colors[Math.floor(Math.random() * colors.length)], alpha, 0.6 + Math.random() * 1);
     }
 
-    // Glow spots (hot spots where veins intersect)
-    for (let i = 0; i < 10; i++) {
+    // Glow spots (subdued)
+    for (let i = 0; i < 5; i++) {
       const gx = Math.random() * w;
       const gy = Math.random() * h;
-      for (let j = 4; j >= 0; j--) {
+      for (let j = 3; j >= 0; j--) {
         const glowColor = j < 2 ? 0xff6600 : 0xff4500;
-        g.beginFill(glowColor, 0.05 * (5 - j));
-        g.drawCircle(gx, gy, 4 + j * 7);
+        g.beginFill(glowColor, 0.03 * (4 - j));
+        g.drawCircle(gx, gy, 3 + j * 5);
         g.endFill();
       }
-      g.beginFill(0xffa500, 0.4);
-      g.drawCircle(gx, gy, 2 + Math.random() * 3);
+      g.beginFill(0xffa500, 0.2);
+      g.drawCircle(gx, gy, 1.5 + Math.random() * 2);
       g.endFill();
     }
 
-    // Ember/spark particles
-    for (let i = 0; i < 50; i++) {
+    // Ember/spark particles (fewer, dimmer)
+    for (let i = 0; i < 20; i++) {
       const ex = Math.random() * w;
       const ey = Math.random() * h;
-      const er = 0.5 + Math.random() * 1.5;
-      const ea = 0.2 + Math.random() * 0.6;
+      const er = 0.3 + Math.random() * 1;
+      const ea = 0.08 + Math.random() * 0.2;
       const ec = Math.random() < 0.5 ? 0xff4500 : (Math.random() < 0.5 ? 0xffa500 : 0xff6600);
       g.beginFill(ec, ea);
       g.drawCircle(ex, ey, er);
