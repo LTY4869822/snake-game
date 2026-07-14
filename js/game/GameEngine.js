@@ -15,32 +15,14 @@ class GameEngine {
   /**
    * @param {HTMLCanvasElement} canvas - Game canvas element
    * @param {object} hooks - UI callback hooks
-   * @param {function} hooks.onScoreUpdate - (score, length, foodEaten)
-   * @param {function} hooks.onTimerUpdate - (remainingSeconds)
-   * @param {function} hooks.onGameOver - (resultData)
-   * @param {function} hooks.onItemActivated - (itemType, remaining)
-   * @param {function} hooks.onItemExpired - (itemType)
-   * @param {function} hooks.onRespawn - ()
-   * @param {PixiRenderer} [existingRenderer] - Reuse existing renderer instead of creating new one
    */
-  constructor(canvas, hooks = {}, existingRenderer = null) {
+  constructor(canvas, hooks = {}) {
     this.canvas = canvas;
     this.hooks = hooks;
-    this._ownsRenderer = !existingRenderer;
 
-    if (existingRenderer) {
-      // Reuse existing renderer - no WebGL context recreation needed
-      this.renderer = existingRenderer;
-      const settings = StorageManager.getSettings();
-      const bgThemeId = settings.bgTheme || 'nebula';
-      if (this.renderer.bgThemeId !== bgThemeId) {
-        this.renderer.setBackground(bgThemeId);
-      }
-    } else {
-      const settings = StorageManager.getSettings();
-      const bgThemeId = settings.bgTheme || 'nebula';
-      this.renderer = new PixiRenderer(canvas, bgThemeId);
-    }
+    const settings = StorageManager.getSettings();
+    const bgThemeId = settings.bgTheme || 'nebula';
+    this.renderer = new PixiRenderer(canvas, bgThemeId);
     this.particles = new ParticleSystem();
     this.snake = null;
     this.foodManager = null;
@@ -767,11 +749,7 @@ class GameEngine {
       this.inputManager.destroy();
       this.inputManager = null;
     }
-    // Only destroy renderer if we created it; shared renderers persist across games
-    if (this.renderer && this._ownsRenderer) {
-      this.renderer.destroy();
-      this.renderer = null;
-    }
+    // Renderer is destroyed by GameScreen when creating a new one
   }
 
   /**

@@ -155,21 +155,30 @@ class GameScreen {
     const speedEl = document.getElementById('hud-speed');
     if (speedEl) speedEl.textContent = '🐢';
 
-    // Cleanup previous engine (but keep the shared renderer)
+    // Cleanup previous engine
     if (this.gameEngine) { this.gameEngine.quit(); this.gameEngine = null; }
 
-    // Reuse or create PixiJS renderer (avoids WebGL context destroy/recreate cycle)
-    if (!this.sharedRenderer) {
-      const bgTheme = settings.bgTheme || 'nebula';
-      this.sharedRenderer = new PixiRenderer(this.canvas, bgTheme);
-    } else {
-      // Update background if theme changed
-      const bgTheme = settings.bgTheme || 'nebula';
-      this.sharedRenderer.setBackground(bgTheme);
-      this.sharedRenderer.resize(); // Recalculate grid for current viewport
+    // Destroy old renderer
+    if (this.sharedRenderer) {
+      this.sharedRenderer.destroy();
+      this.sharedRenderer = null;
     }
 
-    // Create engine with shared renderer
+    // Replace canvas with a fresh one to guarantee clean WebGL context
+    const wrapper = document.querySelector('.game-canvas-wrapper');
+    const oldCanvas = this.canvas;
+    const newCanvas = document.createElement('canvas');
+    newCanvas.id = 'game-canvas';
+    if (oldCanvas && oldCanvas.parentNode) {
+      oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
+    }
+    this.canvas = newCanvas;
+
+    // Create fresh renderer on brand new canvas
+    const bgTheme = settings.bgTheme || 'nebula';
+    this.sharedRenderer = new PixiRenderer(this.canvas, bgTheme);
+
+    // Create engine
     const skinColors = activeSkin.colors || { head: '#a29bfe', body: '#6c5ce7', tail: '#3d3590', glow: 'rgba(108,92,231,0.5)' };
 
     this.gameEngine = new GameEngine(this.canvas, {
@@ -196,7 +205,7 @@ class GameScreen {
       onSpeedUpdate: (level) => { this._updateSpeedGauge(level); },
       onObstacleLevelUpdate: (level) => { this._updateObstacleLevel(level); },
       onObstacleLevelUp: (level) => { ScreenManager.showToast(`⚠ 难度提升！第 ${level} 级`, 'info', 2000); }
-    }, this.sharedRenderer);
+    });
 
     const modeOptions = {};
     if (this.selectedMode === 'timed') modeOptions.timeLimit = this.selectedTime;

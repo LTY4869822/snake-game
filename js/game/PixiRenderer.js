@@ -45,6 +45,11 @@ class PixiRenderer {
     const bgDef = CONFIG.BACKGROUNDS.find(b => b.id === this.bgThemeId) || CONFIG.BACKGROUNDS[0];
     const bgClearColor = this._hexToPixi(bgDef.colors.bottom);
 
+    // Verify PIXI is available (CDN may have failed)
+    if (typeof PIXI === 'undefined' || typeof PIXI.Renderer === 'undefined') {
+      throw new Error('PixiJS 未加载，请检查网络连接后刷新页面');
+    }
+
     // Create PixiJS renderer with WebGL error handling
     try {
       this.renderer = new PIXI.Renderer({
